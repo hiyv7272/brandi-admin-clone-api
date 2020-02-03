@@ -1,6 +1,7 @@
 from flask import Flask, g
 import mysql.connector
 from config import DATABASES
+from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
 from product.model.product_dao import ProductDao
 from product.service.product_service import ProductService
 from product.view.product_view import ProductView
@@ -33,4 +34,6 @@ def create_app():
     ProductView.create_endpoints(app, services)
     SellerView.create_endpoints(app, services)
 
+    # Swagger ui
+    app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
     return app
