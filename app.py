@@ -1,5 +1,6 @@
 from flask import Flask, g
 import mysql.connector
+
 from config import DATABASES
 from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
 from product.model.product_dao import ProductDao
