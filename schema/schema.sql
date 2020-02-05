@@ -2,16 +2,16 @@
 -- Create first_categories table
 --
 CREATE TABLE `first_categories` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `name` varchar(50) NOT NULL,
-    `managed_order` integer NOT NULL,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `changer_id` bigint NULL,
-    `creator_id` bigint NULL,
+    `id`                BIGINT          NOT NULL    AUTO_INCREMENT,
+    `name`              VARCHAR(50)     NOT NULL                                COMMENT '1차 카테고리 이름',
+    `managed_order`     INTEGER         NOT NULL                                COMMENT '관리순서',
+    `is_used`           TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`        DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`        DATETIME        NULL                                    COMMENT '수정시간',
+    `changer_id`        BIGINT          NULL                                    COMMENT '생성자',
+    `creator_id`        BIGINT          NULL                                    COMMENT '수정자',
     PRIMARY KEY (id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '1차 카테고리';
 
 INSERT INTO first_categories (id, name, managed_order, is_used) VALUES(1, '아우터', 1, TRUE);
 INSERT INTO first_categories (id, name, managed_order, is_used) VALUES(2, '상의', 2, TRUE);
@@ -29,16 +29,16 @@ INSERT INTO first_categories (id, name, managed_order, is_used) VALUES(11, '빅�
 -- Create second_categories table
 --
 CREATE TABLE `second_categories` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `name` varchar(50) NOT NULL,
-    `managed_order` integer NULL,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `changer_id` bigint NULL,
-    `creator_id` bigint NULL,
+    `id`                BIGINT          NOT NULL    AUTO_INCREMENT,
+    `name`              VARCHAR(50)     NOT NULL                                COMMENT '2차 카테고리 이름',
+    `managed_order`     INTEGER         NULL                                    COMMENT '관리순서',
+    `is_used`           TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`        DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`        DATETIME        NULL                                    COMMENT '수정시간',
+    `changer_id`        BIGINT          NULL                                    COMMENT '생성자',
+    `creator_id`        BIGINT          NULL                                    COMMENT '수정자',
     PRIMARY KEY (id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '2차 카테고리';
 
 INSERT INTO second_categories (id, name, managed_order, is_used) VALUES(1, '코트', 1, TRUE);
 INSERT INTO second_categories (id, name, managed_order, is_used) VALUES(2, '점퍼', 2, TRUE);
@@ -89,79 +89,72 @@ INSERT INTO second_categories (id, name, managed_order, is_used) VALUES(44, '드
 -- Create total_categories table
 --
 CREATE TABLE `total_categories` (
-    `id` bigint NOT NULL AUTO_INCREMENT, 
-    `first_categories_id` bigint NULL,
-    `second_categories_id` bigint NULL,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `changer_id` bigint NULL,
-    `creator_id` bigint NULL,
+    `id`                        BIGINT      NOT NULL    AUTO_INCREMENT,
+    `first_categories_id`       BIGINT      NULL                                    COMMENT '1차 카테고리 외래키',
+    `second_categories_id`      BIGINT      NULL                                    COMMENT '2차 카테고리 외래키',
+    `is_used`                   bool        NOT NULL                                COMMENT '사용여부',
+    `created_at`                DATETIME    NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`                DATETIME    NULL                                    COMMENT '수정시간',
+    `changer_id`                BIGINT      NULL                                    COMMENT '생성자',
+    `creator_id`                BIGINT      NULL                                    COMMENT '수정자',
     PRIMARY KEY (id),
     CONSTRAINT first_categories_id_fkey FOREIGN KEY (first_categories_id) REFERENCES first_categories(id),
     CONSTRAINT second_categories_id_fkey FOREIGN KEY (second_categories_id) REFERENCES second_categories(id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '전체 카테고리';
 
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES
+(
     1,
-    (SELECT id from first_categories WHERE name='아우터'),
-    (SELECT id from second_categories WHERE name='코트'),
+    (SELECT id from first_categories WHERE name='아우터' LIMIT 1),
+    (SELECT id from second_categories WHERE name='코트' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     2,
-    (SELECT id from first_categories WHERE name='아우터'),
-    (SELECT id from second_categories WHERE name='점퍼'),
+    (SELECT id from first_categories WHERE name='아우터' LIMIT 1),
+    (SELECT id from second_categories WHERE name='점퍼' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     3,
-    (SELECT id from first_categories WHERE name='아우터'),
-    (SELECT id from second_categories WHERE name='재킷'),
+    (SELECT id from first_categories WHERE name='아우터' LIMIT 1),
+    (SELECT id from second_categories WHERE name='재킷' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     4,
-    (SELECT id from first_categories WHERE name='아우터'),
-    (SELECT id from second_categories WHERE name='가디건'),
+    (SELECT id from first_categories WHERE name='아우터' LIMIT 1),
+    (SELECT id from second_categories WHERE name='가디건' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     5,
-    (SELECT id from first_categories WHERE name='상의'),
-    (SELECT id from second_categories WHERE name='니트'),
+    (SELECT id from first_categories WHERE name='상의' LIMIT 1),
+    (SELECT id from second_categories WHERE name='니트' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     6,
-    (SELECT id from first_categories WHERE name='상의'),
-    (SELECT id from second_categories WHERE name='티셔츠'),
+    (SELECT id from first_categories WHERE name='상의' LIMIT 1),
+    (SELECT id from second_categories WHERE name='티셔츠' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     7,
-    (SELECT id from first_categories WHERE name='상의'),
-    (SELECT id from second_categories WHERE name='블라우스/셔츠'),
+    (SELECT id from first_categories WHERE name='상의' LIMIT 1),
+    (SELECT id from second_categories WHERE name='블라우스/셔츠' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     8,
-    (SELECT id from first_categories WHERE name='상의'),
-    (SELECT id from second_categories WHERE name='후드/맨투맨'),
+    (SELECT id from first_categories WHERE name='상의' LIMIT 1),
+    (SELECT id from second_categories WHERE name='후드/맨투맨' LIMIT 1),
     TRUE
-);
-
-INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_used) VALUES(
+),
+(
     9,
-    (SELECT id from first_categories WHERE name='상의'),
-    (SELECT id from second_categories WHERE name='베스트'),
+    (SELECT id from first_categories WHERE name='상의' LIMIT 1),
+    (SELECT id from second_categories WHERE name='베스트' LIMIT 1),
     TRUE
 );
 
@@ -169,15 +162,15 @@ INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_
 -- Create origins
 --
 CREATE TABLE `origins` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `name` varchar(100) NOT NULL UNIQUE,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `changer_id` bigint NULL,
-    `creator_id` bigint NULL,
+    `id`            BIGINT          NOT NULL    AUTO_INCREMENT,
+    `name`          VARCHAR(100)    NOT NULL    UNIQUE                      COMMENT '원산지명',
+    `is_used`       TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`    DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`    DATETIME        NULL                                    COMMENT '수정시간',
+    `changer_id`    BIGINT          NULL                                    COMMENT '생성자',
+    `creator_id`    BIGINT          NULL                                    COMMENT '수정자',
     PRIMARY KEY (id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '원산지';
 
 INSERT INTO origins (id, name, is_used) VALUES(1, '한국', TRUE);
 INSERT INTO origins (id, name, is_used) VALUES(2, '중국', TRUE);
@@ -188,24 +181,24 @@ INSERT INTO origins (id, name, is_used) VALUES(4, '기타', TRUE);
 -- Create information_notices
 --
 CREATE TABLE `information_notices` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `manufacturer` varchar(100) NOT NULL,
-    `manufacturing_date` datetime NOT NULL,
-    `origins_id` bigint NOT NULL,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `creator_id` bigint NULL,
-    `changer_id` bigint NULL,
+    `id`                    BIGINT          NOT NULL    AUTO_INCREMENT,
+    `manufacturer`          VARCHAR(100)    NOT NULL                                COMMENT '제조사(수입사)',
+    `manufacturing_date`    DATETIME        NOT NULL                                COMMENT '제조일자',
+    `origins_id`            BIGINT          NOT NULL                                COMMENT '원산지',
+    `is_used`               TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`            DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`            DATETIME        NULL                                    COMMENT '수정시간',
+    `creator_id`            BIGINT          NULL                                    COMMENT '생성자',
+    `changer_id`            BIGINT          NULL                                    COMMENT '수정자',
     PRIMARY KEY (id),
     CONSTRAINT origins_id_fkey FOREIGN KEY (origins_id) REFERENCES origins(id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '상품정보 고시';
 
 INSERT INTO information_notices (id, manufacturer, manufacturing_date, origins_id, is_used) VALUES(
     1,
     '나이카',
     '2020-02-05 02:05:00',
-    (SELECT id from origins WHERE name='한국'),
+    (SELECT id from origins WHERE name='한국' LIMIT 1),
     TRUE
 );
 
@@ -213,19 +206,64 @@ INSERT INTO information_notices (id, manufacturer, manufacturing_date, origins_i
 -- Create color_filters
 --
 CREATE TABLE `color_filters` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `kr_name` varchar(50) NOT NULL UNIQUE,
-    `en_name` varchar(50) NOT NULL UNIQUE,
-    `color_value` varchar(10) NOT NULL,
-    `image_url` varchar(200) NOT NULL,
-    `is_used` bool NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` datetime NULL,
-    `creator_id` bigint NULL,
-    `changer_id` bigint NULL,
+    `id`            BIGINT          NOT NULL    AUTO_INCREMENT,
+    `kr_name`       VARCHAR(50)     NOT NULL    UNIQUE                      COMMENT '한글색상이름',
+    `en_name`       VARCHAR(50)     NOT NULL    UNIQUE                      COMMENT '영어색상이름',
+    `color_value`   VARCHAR(10)     NOT NULL                                COMMENT '색상값',
+    `image_url`     VARCHAR(200)    NOT NULL                                COMMENT '색상 이미지',
+    `is_used`       TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`    DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`    DATETIME        NULL                                    COMMENT '수정시간',
+    `creator_id`    BIGINT          NULL                                    COMMENT '생성자',
+    `changer_id`    BIGINT          NULL                                    COMMENT '수정자',
     PRIMARY KEY (id)
-);
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '색상필터';
 
 INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(1, '빨강', '(Red)', '#FF0000', '/color_filter/red.png', TRUE);
 INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(2, '주황', '(Orange)', '#FF4500', '/color_filter/orange.png', TRUE);
 INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(3, '노랑', '(Yellow)', '#FFFF00', '/color_filter/yellow.png', TRUE);
+
+--
+-- Create style_filters
+--
+CREATE TABLE `style_filters` (
+    `id`            BIGINT          NOT NULL    AUTO_INCREMENT,
+    `name`          VARCHAR(50)     NOT NULL                                COMMENT '필터이름',
+    `is_used`       TINYINT         NOT NULL                                COMMENT '사용여부',
+    `created_at`    DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
+    `updated_at`    DATETIME        NULL                                    COMMENT '수정시간',
+    `creator_id`    BIGINT          NULL                                    COMMENT '생성자',
+    `changer_id`    BIGINT          NULL                                    COMMENT '수정자',
+    PRIMARY KEY(id)
+) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '스타일필터';
+
+INSERT INTO style_filters (id, name, is_used) VALUES(
+    1,
+    '선택안함',
+    TRUE
+),
+(
+    2,
+    '심플베이직',
+    TRUE
+),
+(
+    3,
+    '러블리',
+    TRUE
+),
+(
+    4,
+    '페미닌',
+    TRUE
+),
+(
+    5,
+    '캐주얼',
+    TRUE
+),
+(
+    6,
+    '섹시글램',
+    TRUE
+);
