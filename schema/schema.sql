@@ -164,3 +164,68 @@ INSERT INTO total_categories (id, first_categories_id, second_categories_id, is_
     (SELECT id from second_categories WHERE name='베스트'),
     TRUE
 );
+
+--
+-- Create origins
+--
+CREATE TABLE `origins` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `name` varchar(100) NOT NULL UNIQUE,
+    `is_used` bool NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NULL,
+    `changer_id` bigint NULL,
+    `creator_id` bigint NULL,
+    PRIMARY KEY (id)
+);
+
+INSERT INTO origins (id, name, is_used) VALUES(1, '한국', TRUE);
+INSERT INTO origins (id, name, is_used) VALUES(2, '중국', TRUE);
+INSERT INTO origins (id, name, is_used) VALUES(3, '베트남', TRUE);
+INSERT INTO origins (id, name, is_used) VALUES(4, '기타', TRUE);
+
+--
+-- Create information_notices
+--
+CREATE TABLE `information_notices` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `manufacturer` varchar(100) NOT NULL,
+    `manufacturing_date` datetime NOT NULL,
+    `origins_id` bigint NOT NULL,
+    `is_used` bool NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NULL,
+    `creator_id` bigint NULL,
+    `changer_id` bigint NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT origins_id_fkey FOREIGN KEY (origins_id) REFERENCES origins(id)
+);
+
+INSERT INTO information_notices (id, manufacturer, manufacturing_date, origins_id, is_used) VALUES(
+    1,
+    '나이카',
+    '2020-02-05 02:05:00',
+    (SELECT id from origins WHERE name='한국'),
+    TRUE
+);
+
+--
+-- Create color_filters
+--
+CREATE TABLE `color_filters` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `kr_name` varchar(50) NOT NULL UNIQUE,
+    `en_name` varchar(50) NOT NULL UNIQUE,
+    `color_value` varchar(10) NOT NULL,
+    `image_url` varchar(200) NOT NULL,
+    `is_used` bool NOT NULL,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime NULL,
+    `creator_id` bigint NULL,
+    `changer_id` bigint NULL,
+    PRIMARY KEY (id)
+);
+
+INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(1, '빨강', '(Red)', '#FF0000', '/color_filter/red.png', TRUE);
+INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(2, '주황', '(Orange)', '#FF4500', '/color_filter/orange.png', TRUE);
+INSERT INTO color_filters (id, kr_name, en_name, color_value, image_url, is_used) VALUES(3, '노랑', '(Yellow)', '#FFFF00', '/color_filter/yellow.png', TRUE);
