@@ -316,7 +316,7 @@ INSERT INTO option_types (id, name, is_used) VALUES(3, '옵션없음', TRUE);
 --
 CREATE TABLE `option_info` (
     `id`                    BIGINT      NOT NULL    AUTO_INCREMENT,
-    `option_types_id`       BIGINT      NOT NULL                                COMMENT '옵션타입 외래키', 
+    `option_types_id`       BIGINT      NOT NULL                                COMMENT '옵션타입 외래키 (FK)', 
     `is_used`               TINYINT     NOT NULL                                COMMENT '사용여부',
     `created_at`            DATETIME    NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
     `updated_at`            DATETIME    NULL                                    COMMENT '수정시간',
@@ -335,6 +335,11 @@ INSERT INTO option_info (id, option_types_id, is_used) VALUES(
     2,
     (SELECT id from option_types WHERE name='자율옵션' LIMIT 1),
     TRUE
+),
+(
+    3,
+    (SELECT id from option_types WHERE name='자율옵션' LIMIT 1),
+    TRUE
 );
 
 --
@@ -342,9 +347,9 @@ INSERT INTO option_info (id, option_types_id, is_used) VALUES(
 --
 CREATE TABLE `basic_options` (
     `id`                        BIGINT      NOT NULL    AUTO_INCREMENT,
-    `option_info_id`            BIGINT      NOT NULL                                COMMENT '옵션정보 외래키',
-    `basic_options_colors_id`   BIGINT      NOT NULL                                COMMENT '기본옵션 색상 외래키',
-    `basic_options_sizes_id`    BIGINT      NOT NULL                                COMMENT '기본옵션 사이즈 외래키',
+    `option_info_id`            BIGINT      NOT NULL                                COMMENT '옵션정보 외래키 (FK)',
+    `basic_options_colors_id`   BIGINT      NOT NULL                                COMMENT '기본옵션 색상 외래키 (FK)',
+    `basic_options_sizes_id`    BIGINT      NOT NULL                                COMMENT '기본옵션 사이즈 외래키 (FK)',
     `is_stock_managed`          TINYINT     NOT NULL                                COMMENT '재고관리여부',
     `stock_volume`              INT         NULL                                    COMMENT '재고수량',
     `is_used`                   TINYINT     NOT NULL                                COMMENT '사용여부',
@@ -389,11 +394,12 @@ INSERT INTO autonomous_options_types (id, name, is_used) VALUES(2, '독립선택
 --
 CREATE TABLE `autonomous_options` (
     `id`                            BIGINT          NOT NULL    AUTO_INCREMENT,
-    `option_info_id`                BIGINT          NOT NULL                                COMMENT '옵션정보 외래키(FK)',
-    `autonomous_options_types_id`   BIGINT          NOT NULL                                COMMENT '자율옵션 타입 외래키(FK)',
+    `option_info_id`                BIGINT          NOT NULL                                COMMENT '옵션정보 외래키 (FK)',
+    `autonomous_options_types_id`   BIGINT          NOT NULL                                COMMENT '자율옵션 타입 외래키 (FK)',
     `option_name`                   VARCHAR(100)    NOT NULL                                COMMENT '옵션명',               
-    `option_value`                  VARCHAR(100)    NOT NULL    UNIQUE                      COMMENT '옵션값',
+    `option_value`                  VARCHAR(100)    NOT NULL                                COMMENT '옵션값',
     `option_order`                  INT             NOT NULL                                COMMENT '옵션순서',
+    `is_option_required`            TINYINT         NULL                                    COMMENT '필수옵션여부',
     `is_used`                       TINYINT         NOT NULL                                COMMENT '사용여부',
     `created_at`                    DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
     `updated_at`                    DATETIME        NULL                                    COMMENT '수정시간',
@@ -404,42 +410,77 @@ CREATE TABLE `autonomous_options` (
     CONSTRAINT autonomous_options_types_id_fkey FOREIGN KEY (autonomous_options_types_id) REFERENCES autonomous_options_types(id)
 ) ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '자율옵션';
 
-INSERT INTO autonomous_options (id, option_info_id, autonomous_options_types_id, option_name, option_value, option_order, is_used) VALUES(
+INSERT INTO autonomous_options (
+    id,
+    option_info_id,
+    autonomous_options_types_id,
+    option_name,
+    option_value,
+    option_order,
+    is_option_required,
+    is_used
+) VALUES(
     1,
-    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1), -- autonomous_options_types_id
     '색상', -- option_name
     '빨강', -- option_value
     1, -- option_order
+    NULL, -- is_option_required
     TRUE -- is_used
 ),
 (
     2,
-    (SELECT id from option_info WHERE id=2 LIMIT 1),
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
-    '색상',
-    '노랑',
-    1,
-    TRUE
+    '색상', -- option_name
+    '노랑', -- option_value
+    1, -- option_order
+    NULL, -- is_option_required
+    TRUE -- is_used
 ),
 (
     3,
-    (SELECT id from option_info WHERE id=2 LIMIT 1),
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
-    '크기',
-    'XL',
-    2,
-    TRUE
+    '크기', -- option_name
+    'XL', -- option_value
+    2, -- option_order
+    NULL, -- is_option_required
+    TRUE -- is_used
 ),
 (
     4,
-    (SELECT id from option_info WHERE id=2 LIMIT 1),
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
-    '크기',
-    'L',
-    2,
-    TRUE
-);   
+    '크기', -- option_name
+    'L', -- option_value
+    2, -- option_order
+    NULL, -- is_option_required
+    TRUE -- is_used
+),
+
+(
+    5,
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (3)
+    (SELECT id from autonomous_options_types WHERE name='독립선택형' LIMIT 1),
+    '색상', -- option_name
+    '노랑', -- option_value
+    1, -- option_order
+    TRUE, -- is_option_required
+    TRUE -- is_used
+),
+(
+    6,
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (3)
+    (SELECT id from autonomous_options_types WHERE name='독립선택형' LIMIT 1),
+    '크기', -- option_name
+    'L', -- option_value
+    2, -- option_order
+    FALSE, -- is_option_required
+    TRUE -- is_used
+)
+;   
 
 --
 -- 15. autonomous_options_combinations
@@ -475,36 +516,70 @@ INSERT INTO autonomous_options_combinations (
     is_used
 ) VALUES (
     1,
-    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
     '빨강/XL',
     TRUE, -- is_required
     TRUE, -- is_stock_managed
     1, -- stock_volume
     100, -- extra_price
-    TRUE
+    TRUE -- is_used
 ),
 (
     2,
-    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
     '빨강/L',
     TRUE, -- is_required
     FALSE, -- is_stock_managed
     NULL, -- stock_volume
     200, -- extra_price
-    TRUE  
+    TRUE -- is_used 
 ),
 (
     3,
-    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id
+    (SELECT id from option_info WHERE id=2 LIMIT 1), -- option_info_id (2)
     (SELECT id from autonomous_options_types WHERE name='분리선택형' LIMIT 1),
     '노랑/XL',
     TRUE, -- is_required
     TRUE, -- is_stock_managed
     2, -- stock_volume
     300, -- extra_price
-    TRUE  
+    TRUE -- is_used
+),
+
+(
+    4,
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (3)
+    (SELECT id from autonomous_options_types WHERE name='독립선택형' LIMIT 1),
+    '노랑',
+    TRUE, -- is_required
+    FALSE, -- is_stock_managed
+    NULL, -- stock_volume
+    2000, -- extra_price
+    TRUE -- is_used
+),
+(
+    5,
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (3)
+    (SELECT id from autonomous_options_types WHERE name='독립선택형' LIMIT 1),
+    'L',
+    FALSE, -- is_required
+    TRUE, -- is_stock_managed
+    3, -- stock_volume
+    3000, -- extra_price
+    TRUE -- is_used
+),
+(
+    6,
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (3)
+    (SELECT id from autonomous_options_types WHERE name='독립선택형' LIMIT 1),
+    'S',
+    FALSE, -- is_required
+    FALSE, -- is_stock_managed
+    NULL, -- stock_volume
+    4000, -- extra_price
+    TRUE -- is_used
 );
 
 --
@@ -531,8 +606,8 @@ CREATE TABLE `no_option` (
 CREATE TABLE `products` (
     `id`                            BIGINT          NOT NULL    AUTO_INCREMENT,
     `name`                          VARCHAR(100)    NOT NULL                                COMMENT '상품명',
-    `product_number`                BIGINT          NOT NULL                                COMMENT '상품번호',
-    `serial_number`                 VARCHAR(200)    NOT NULL                                COMMENT '상품코드',
+    `product_number`                BIGINT          NOT NULL    UNIQUE                      COMMENT '상품번호',
+    `serial_number`                 VARCHAR(200)    NOT NULL    UNIQUE                      COMMENT '상품코드',
     `is_temporary_save`             TINYINT         NOT NULL                                COMMENT '임시저장 여부',
     `is_sold`                       TINYINT         NOT NULL                                COMMENT '판매여부',
     `is_displayed`                  TINYINT         NOT NULL                                COMMENT '진열여부',
@@ -557,6 +632,7 @@ CREATE TABLE `products` (
     `discount_rate`                 INT             NULL                                    COMMENT '할인율',
     `discount_price`                INT             NULL                                    COMMENT '할인가',
     `discounted_price`              INT             NULL                                    COMMENT '할인판매가',
+    `discount_infinite_period`      TINYINT         NULL                                    COMMENT '할인기간 무기한 여부',
     `discount_start_period`         DATETIME        NULL                                    COMMENT '할인기간(시작)',
     `discount_end_period`           DATETIME        NULL                                    COMMENT '할인기간(종료)',
     `minimum_quantity`              INT             NULL                                    COMMENT '최소판매수량',
@@ -605,6 +681,7 @@ INSERT INTO products (
     discount_rate,
     discount_price,
     discounted_price,
+    discount_infinite_period,
     discount_start_period,
     discount_end_period,
     minimum_quantity,
@@ -616,7 +693,7 @@ INSERT INTO products (
     creator_id,
     changer_id
 ) VALUES (
-    1, -- id
+    1, -- id 기본 선택
     'kim 테스트 (오늘출발)', -- name (required when registering)
     200, -- product_number
     'B000000000000000335', -- serial_number
@@ -644,6 +721,7 @@ INSERT INTO products (
     NULL, -- discount_rate
     NULL, -- discount_price
     NULL, -- discounted_price
+    NULL, -- discount_infinite_period
     NULL, -- discount_start_period
     NULL, -- discount_end_period
     NULL, -- minimum_quantity
@@ -655,7 +733,7 @@ INSERT INTO products (
     NULL -- changer_id
 ),
 (
-    2, -- id 자율 분리 선택
+    2, -- id 자율/분리 선택
     '테스트1', -- name (required when registering)
     202, -- product_number
     'CV000000000000009077', -- serial_number
@@ -683,6 +761,47 @@ INSERT INTO products (
     NULL, -- discount_rate
     NULL, -- discount_price
     NULL, -- discounted_price
+    NULL, -- discount_infinite_period
+    NULL, -- discount_start_period
+    NULL, -- discount_end_period
+    NULL, -- minimum_quantity
+    NULL, -- maximum_quantity
+    FALSE, -- product_tags_used
+    FALSE, -- coordinates_product_used
+    NULL, -- updated_at
+    NULL, -- creator_id
+    NULL -- changer_id
+),
+(
+    3, -- id 자율/독립/할인 선택
+    '테스트2_', -- name (required when registering)
+    203, -- product_number
+    'CV000000000000000090', -- serial_number
+    FALSE, -- is_temporary_save
+    TRUE, -- is_sold
+    TRUE, -- is_displayed
+    TRUE, -- is_used
+    (SELECT id from first_categories WHERE name='스커트' LIMIT 1), -- first_categories_id (required when registering)
+    (SELECT id from second_categories WHERE name='미니스커트' LIMIT 1), -- second_categories_id (required when registering)
+    FALSE, -- information_notice_use
+    NULL,-- information_notices_id
+    '테스트2_한줄설명', -- one_line_description
+    '테스트2_main_image_url', -- main_image (required when registering)
+    NULL, -- image_1
+    NULL, -- image_2
+    NULL, -- image_3
+    NULL, -- image_4
+    (SELECT id from color_filters WHERE kr_name='노랑' LIMIT 1), -- color_filters_id (required when registering)
+    (SELECT id from style_filters WHERE name='페미닌' LIMIT 1), -- style_filters_id (required when registering)
+    TRUE, -- is_age_filter_input (required when registering)
+    '테스트2_상세설명', -- detailed_info (required when registering)
+    NULL, -- youtube_url
+    (SELECT id from option_info WHERE id=3 LIMIT 1), -- option_info_id (required when registering)
+    30000, -- price
+    10, -- discount_rate
+    3000, -- discount_price
+    27000, -- discounted_price
+    TRUE, -- discount_infinite_period
     NULL, -- discount_start_period
     NULL, -- discount_end_period
     NULL, -- minimum_quantity
@@ -700,7 +819,7 @@ INSERT INTO products (
 CREATE TABLE `age_filters` (
     `id`                            BIGINT          NOT NULL    AUTO_INCREMENT,
     `products_id`                   BIGINT          NOT NULL                                COMMENT '상품 외래키(FK)',
-    `name`                          VARCHAR(50)     NOT NULL    UNIQUE                      COMMENT '연령필터 이름',
+    `name`                          VARCHAR(50)     NOT NULL                                COMMENT '연령필터 이름',
     `is_used`                       TINYINT         NOT NULL                                COMMENT '사용여부',
     `created_at`                    DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP   COMMENT '생성시간',
     `updated_at`                    DATETIME        NULL                                    COMMENT '수정시간',
@@ -713,6 +832,18 @@ CREATE TABLE `age_filters` (
 INSERT INTO age_filters (id, products_id, name, is_used) VALUES(
     1,
     (SELECT id from products WHERE id=1 LIMIT 1),
+    '10대',
+    TRUE
+),
+(
+    2,
+    (SELECT id from products WHERE id=2 LIMIT 1),
+    '10대',
+    TRUE
+),
+(
+    3,
+    (SELECT id from products WHERE id=3 LIMIT 1),
     '10대',
     TRUE
 );
