@@ -1,4 +1,6 @@
 from flask import Flask, g
+from flask_cors    import CORS
+
 import mysql.connector
 
 from config import DATABASES
@@ -21,6 +23,8 @@ def get_db():
 
 def create_app():
     app = Flask(__name__)
+
+    CORS(app)
 
     # DataModel layer
     product_dao = ProductDao(get_db)
