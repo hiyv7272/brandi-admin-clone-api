@@ -18,10 +18,9 @@ class SellerView:
 
         @app.errorhandler(400)
         def bad_request(error):
-            response = jsonify({'error_message': error.description})
+            response = jsonify({'message': error.description})
             response.status_code = 400
             return response
-
 
         @app.errorhandler(404)
         def page_not_found(error):
@@ -37,11 +36,4 @@ class SellerView:
             new_seller = request.json
             new_seller = seller_service.create_new_seller(new_seller)
 
-            try:
-                new_seller = request.json
-                new_seller = seller_service.create_new_seller(new_seller)
-
-                return new_seller
-
-            except Exception:
-                return InvalidUsage(status_code=400)
+            return jsonify({'message':'SUCCESS'}, 200)
