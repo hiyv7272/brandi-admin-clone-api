@@ -456,24 +456,8 @@ CREATE TABLE sellers_info
     `bg_image`                 VARCHAR(200)     NULL                        COMMENT '셀러페이지_배경이미지', 
     `single_line_intro`        VARCHAR(100)     NOT NULL                    COMMENT '셀러_한줄_소개', 
     `detailed_intro`           VARCHAR(2000)    NULL                        COMMENT '셀러_상세_소개', 
-    `delivery_postal_code`     VARCHAR(100)     NOT NULL                    COMMENT '택배주소_우편번호', 
-    `delivery_address_main`    VARCHAR(100)     NOT NULL                    COMMENT '택배주소_일반주소', 
-    `delivery_address_detail`  VARCHAR(100)     NOT NULL                    COMMENT '택배주소_상세주소', 
-    `cs_time_weekday_start`    DATETIME         NOT NULL                    COMMENT '고객센터_운영시간(주중)_시작', 
-    `cs_time_weekday_end`      DATETIME         NOT NULL                    COMMENT '고객센터_운영시간(주중)_종료', 
-    `cs_time_weekend_start`    DATETIME         NULL                        COMMENT '고객센터_운영시간(주말)_시작', 
-    `cs_time_weekend_end`      DATETIME         NULL                        COMMENT '고객센터_운영시간(주말)_종료', 
-    `bank_name`                VARCHAR(100)     NOT NULL                    COMMENT '정산정보_은행명', 
-    `bank_depositor`           VARCHAR(100)     NOT NULL                    COMMENT '정산정보_예금자명', 
-    `bank_account`             VARCHAR(100)     NOT NULL                    COMMENT '정산정보_계좌번호', 
     `shopping_info`            VARCHAR(1000)    NOT NULL                    COMMENT '배송정보', 
     `refund_info`              VARCHAR(1000)    NOT NULL                    COMMENT '교환/환불정보', 
-    `brand_info`               VARCHAR(100)     NULL                        COMMENT '관리브랜드정보', 
-    `model_height`             INT              NULL                        COMMENT '셀러모델_키', 
-    `model_tops_size`          INT              NULL                        COMMENT '셀러모델_상의사이즈', 
-    `model_bottom_size`        INT              NULL                        COMMENT '셀러모델_하의사이즈', 
-    `model_foot_size`          INT              NULL                        COMMENT '셀러모델_발사이즈', 
-    `shopping_message`         VARCHAR(1000)    NOT NULL                    COMMENT '쇼핑피드_업데이트_메세지', 
     `created_at`               DATETIME         NULL                        COMMENT '생성시간', 
     `updated_at`               DATETIME         NULL                        COMMENT '수정시간', 
     PRIMARY KEY (id)
@@ -672,21 +656,6 @@ ALTER TABLE seller_representative
     ADD CONSTRAINT UC_email UNIQUE (email);
 
 
--- seller_status_logs Table Create SQL
-CREATE TABLE seller_status_logs
-(
-    `id`           BIGINT         NOT NULL    AUTO_INCREMENT    COMMENT 'id', 
-    `accounts_id`  BIGINT         NULL                          COMMENT '계정테이블_id FK', 
-    `update_time`  VARCHAR(45)    NULL                          COMMENT '셀러상태_변경_적용일시', 
-    `status`       VARCHAR(45)    NULL                          COMMENT '셀러_상태', 
-    PRIMARY KEY (id)
-)ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '셀러_상태_로그 테이블';
-
-ALTER TABLE seller_status_logs
-    ADD CONSTRAINT FK_seller_status_accounts_id FOREIGN KEY (accounts_id)
-        REFERENCES accounts (id);
-
-
 -- sellers_info_snapshot Table Create SQL
 CREATE TABLE sellers_info_snapshot
 (
@@ -703,24 +672,8 @@ CREATE TABLE sellers_info_snapshot
     `bg_image`                 VARCHAR(200)     NULL                        COMMENT '셀러페이지_배경이미지', 
     `single_line_intro`        VARCHAR(100)     NOT NULL                    COMMENT '셀러_한줄_소개', 
     `detailed_intro`           VARCHAR(2000)    NULL                        COMMENT '셀러_상세_소개', 
-    `delivery_postal_code`     VARCHAR(100)     NOT NULL                    COMMENT '택배주소_우편번호', 
-    `delivery_address_main`    VARCHAR(100)     NOT NULL                    COMMENT '택배주소_일반주소', 
-    `delivery_address_detail`  VARCHAR(100)     NOT NULL                    COMMENT '택배주소_상세주소', 
-    `cs_time_weekday_start`    DATETIME         NOT NULL                    COMMENT '고객센터_운영시간(주중)_시작', 
-    `cs_time_weekday_end`      DATETIME         NOT NULL                    COMMENT '고객센터_운영시간(주중)_종료', 
-    `cs_time_weekend_start`    DATETIME         NULL                        COMMENT '고객센터_운영시간(주말)_시작', 
-    `cs_time_weekend_end`      DATETIME         NULL                        COMMENT '고객센터_운영시간(주말)_종료', 
-    `bank_name`                VARCHAR(100)     NOT NULL                    COMMENT '정산정보_은행명', 
-    `bank_depositor`           VARCHAR(100)     NOT NULL                    COMMENT '정산정보_예금자명', 
-    `bank_account`             VARCHAR(100)     NOT NULL                    COMMENT '정산정보_계좌번호', 
     `shopping_info`            VARCHAR(1000)    NOT NULL                    COMMENT '배송정보', 
     `refund_info`              VARCHAR(1000)    NOT NULL                    COMMENT '교환환불정보', 
-    `brand_info`               VARCHAR(100)     NULL                        COMMENT '관리브랜드정보', 
-    `model_height`             INT              NULL                        COMMENT '셀러모델_키', 
-    `model_tops_size`          INT              NULL                        COMMENT '셀러모델_상의사이즈', 
-    `model_bottom_size`        INT              NULL                        COMMENT '셀러모델_하의사이즈', 
-    `model_foot_size`          INT              NULL                        COMMENT '셀러모델_발사이즈', 
-    `shopping_message`         VARCHAR(1000)    NOT NULL                    COMMENT '쇼핑피드_업데이트_메세지', 
     `created_at`               DATETIME         NULL                        COMMENT '생성시간', 
     `updated_at`               DATETIME         NULL                        COMMENT '수정시간', 
     PRIMARY KEY (id)
