@@ -37,4 +37,11 @@ class SellerView:
             new_seller = request.json
             new_seller = seller_service.create_new_seller(new_seller)
 
-            return jsonify(new_seller)
+            try:
+                new_seller = request.json
+                new_seller = seller_service.create_new_seller(new_seller)
+
+                return new_seller
+
+            except Exception:
+                return InvalidUsage(status_code=400)

@@ -211,7 +211,7 @@ CREATE TABLE masters
 (
     `id`                   BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT 'id', 
     `accounts_id`          BIGINT          NULL                         COMMENT '계정테이블_id FK', 
-    `auth_groups_menu_id`  BIGINT          NULL                         COMMENT '권한그룹_메뉴 테이블_id FK', 
+    `auth_groups_id`       BIGINT          NULL                         COMMENT '권한그룹 테이블_id FK', 
     `account`              VARCHAR(20)     NOT NULL                     COMMENT '계정', 
     `password`             VARCHAR(300)    NOT NULL                     COMMENT '비밀번호', 
     `name_kr`              VARCHAR(45)     NOT NULL                     COMMENT '이름(한글)', 
@@ -223,8 +223,8 @@ CREATE TABLE masters
 )ENGINE = INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '마스터 테이블';
 
 ALTER TABLE masters
-    ADD CONSTRAINT FK_masters_auth_groups_menu_id FOREIGN KEY (auth_groups_menu_id)
-        REFERENCES auth_groups_menu (id);
+    ADD CONSTRAINT FK_masters_auth_groups_id FOREIGN KEY (auth_groups_id)
+        REFERENCES auth_groups (id);
 
 ALTER TABLE masters
     ADD CONSTRAINT FK_masters_accounts_id FOREIGN KEY (accounts_id)
@@ -371,7 +371,7 @@ CREATE TABLE sellers
 (
     `id`                   BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT 'id', 
     `accounts_id`          BIGINT          NULL                         COMMENT '계정테이블_id FK', 
-    `auth_groups_menu_id`  BIGINT          NULL                         COMMENT '권한그룹_메뉴 테이블_id FK', 
+    `auth_groups_id`       BIGINT          NULL                         COMMENT '권한그룹 테이블_id FK', 
     `seller_types_id`      BIGINT          NULL                         COMMENT '셀러_타입테이블_id FK', 
     `seller_status_id`     BIGINT          NULL                         COMMENT '셀러_상태테이블_id FK', 
     `seller_info_id`       BIGINT          NULL                         COMMENT '셀러_정보테이블_id FK', 
@@ -420,8 +420,8 @@ ALTER TABLE sellers
         REFERENCES sellers_info (id);
 
 ALTER TABLE sellers
-    ADD CONSTRAINT FK_sellers_auth_groups_menu_id FOREIGN KEY (auth_groups_menu_id)
-        REFERENCES auth_groups_menu (id);
+    ADD CONSTRAINT FK_sellers_auth_groups_id FOREIGN KEY (auth_groups_id)
+        REFERENCES auth_groups (id);
 
 ALTER TABLE sellers
     ADD CONSTRAINT FK_sellers_accounts_id FOREIGN KEY (accounts_id)
@@ -542,7 +542,7 @@ CREATE TABLE masters_snapshot
 (
     `id`                   BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT 'id', 
     `accounts_id`          BIGINT          NULL                         COMMENT '계정테이블_id FK', 
-    `auth_groups_menu_id`  BIGINT          NULL                         COMMENT '권한_그룹테이블_id FK', 
+    `auth_groups_id`       BIGINT          NULL                         COMMENT '권한그룹 테이블_id FK', 
     `account`              VARCHAR(20)     NOT NULL                     COMMENT '계정', 
     `password`             VARCHAR(300)    NOT NULL                     COMMENT '비밀번호', 
     `name_kr`              VARCHAR(45)     NOT NULL                     COMMENT '이름(한글)', 
@@ -558,8 +558,8 @@ ALTER TABLE masters_snapshot
         REFERENCES accounts (id);
 
 ALTER TABLE masters_snapshot
-    ADD CONSTRAINT FK_masters_snapshot_auth_groups_menu_id FOREIGN KEY (auth_groups_menu_id)
-        REFERENCES auth_groups_menu (id);
+    ADD CONSTRAINT FK_masters_snapshot_auth_groups_id FOREIGN KEY (auth_groups_id)
+        REFERENCES auth_groups (id);
 
 ALTER TABLE masters_snapshot
     ADD CONSTRAINT UC_account UNIQUE (account);
@@ -570,7 +570,7 @@ CREATE TABLE sellers_snapshot
 (
     `id`                   BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT 'id', 
     `accounts_id`          BIGINT          NULL                         COMMENT '계정테이블_id FK', 
-    `auth_groups_menu_id`  BIGINT          NULL                         COMMENT '권한_그룹테이블_id FK', 
+    `auth_groups_id`       BIGINT          NULL                         COMMENT '권한그룹 테이블_id FK', 
     `seller_types_id`      BIGINT          NULL                         COMMENT '셀러_타입테이블_id FK', 
     `seller_status_id`     BIGINT          NULL                         COMMENT '셀러_상태테이블_id FK', 
     `seller_info_id`       BIGINT          NULL                         COMMENT '셀러_정보테이블_id FK', 
@@ -599,8 +599,8 @@ ALTER TABLE sellers_snapshot
         REFERENCES accounts (id);
 
 ALTER TABLE sellers_snapshot
-    ADD CONSTRAINT FK_sellers_snapshot_auth_groups_menu_id FOREIGN KEY (auth_groups_menu_id)
-        REFERENCES auth_groups_menu (id);
+    ADD CONSTRAINT FK_sellers_snapshot_auth_groups_id FOREIGN KEY (auth_groups_id)
+        REFERENCES auth_groups (id);
 
 ALTER TABLE sellers_snapshot
     ADD CONSTRAINT FK_sellers_snapshot_seller_types_id FOREIGN KEY (seller_types_id)
