@@ -1,3 +1,7 @@
+import mysql.connector
+
+from flask      import abort
+
 class SellerDao:
 
     def __init__(self, database):
@@ -5,21 +9,21 @@ class SellerDao:
 
     def insert_seller(self, new_seller):
         db_cursor = self.db().cursor()
-
-        new_seller_data = {
-            'seller_types_id' : new_seller['seller_types_id'],
-            'account'  : new_seller['account'],
-            'name_kr'  : new_seller['name_kr'],
-            'name_en'  : new_seller['name_en'],
-            'password' : new_seller['password'],
-            'mobile_number' : new_seller['mobile_number'],
-            'cs_phone_number' : new_seller['cs_phone_number'],
-            'site_url' : new_seller['site_url'],
-            'instagram_account' : new_seller['instagram_account'],
-            'cs_kakao_account' : new_seller['cs_kakao_account'],
-        }
-        
+      
         try:
+            new_seller_data = {
+                'seller_types_id' : new_seller['seller_types_id'],
+                'account'  : new_seller['account'],
+                'name_kr'  : new_seller['name_kr'],
+                'name_en'  : new_seller['name_en'],
+                'password' : new_seller['password'],
+                'mobile_number' : new_seller['mobile_number'],
+                'cs_phone_number' : new_seller['cs_phone_number'],
+                'site_url' : new_seller['site_url'],
+                'instagram_account' : new_seller['instagram_account'],
+                'cs_kakao_account' : new_seller['cs_kakao_account'],
+            }
+
             query_start = ("START TRANSACTION")
             db_cursor.execute(query_start)
 
@@ -59,7 +63,7 @@ class SellerDao:
                     (SELECT id FROM accounts WHERE account=%(account)s limit 1),
                     (SELECT id FROM auth_groups WHERE name='셀러 입점' limit 1),
                     (SELECT id from seller_status WHERE name='입점대기' limit 1),
-                    %(seller_types_id)s,
+                    (SELECT id FROM seller_types WHERE id=%(seller_types_id)s limit 1),
                     %(account)s,
                     %(name_kr)s,
                     %(name_en)s, 
@@ -69,17 +73,16 @@ class SellerDao:
                     %(site_url)s,
                     %(instagram_account)s,
                     %(cs_kakao_account)s,
-                    1
+                    TRUE
                 )
             """)
 
             db_cursor.execute(query_2, new_seller_data)
             self.db().commit()
             db_cursor.close()
-            return "SUCCESS", 200
 
-        except:
+        except mysql.connector.Error as err:
             query_rollback = ("ROLLBACK")
             db_cursor.execute(query_rollback)
             db_cursor.close()
-            return 'INVAILD_DATA', 400
+            abort(400, description="INVAILD_DATA")

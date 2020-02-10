@@ -1,20 +1,6 @@
 from flask      import request, jsonify
 from flask.json import JSONEncoder
 
-class InvalidUsage(Exception):
-    status_code = 400
-
-    def __init__(self, message, status_code=None, payload=None):
-        Exception.__init__(self)
-        self.message = message
-        if status_code is not None:
-            self.status_code = status_code
-        self.payload = payload
- 
-    def to_dict(self):
-        rv = dict(self.payload or ())
-        rv['message'] = self.message
-        return rv
 
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -30,6 +16,13 @@ class SellerView:
         app.json_encoder = CustomJSONEncoder
         seller_service  = services.seller_service
 
+        @app.errorhandler(400)
+        def bad_request(error):
+            response = jsonify({'error_message': error.description})
+            response.status_code = 400
+            return response
+
+
         @app.errorhandler(404)
         def page_not_found(error):
             return "INVALID_URL", 404
@@ -40,6 +33,9 @@ class SellerView:
         
         @app.route("/seller/sign-up", methods=['POST'])
         def sign_up():
+
+            new_seller = request.json
+            new_seller = seller_service.create_new_seller(new_seller)
 
             try:
                 new_seller = request.json
