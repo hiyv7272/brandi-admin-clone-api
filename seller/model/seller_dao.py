@@ -1,5 +1,6 @@
 import mysql.connector
 
+from mysql.connector.errors import Error
 from flask      import abort
 
 class SellerDao:
@@ -80,6 +81,9 @@ class SellerDao:
             db_cursor.execute(query_2, new_seller_data)
             self.db().commit()
             db_cursor.close()
+        
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
             query_rollback = ("ROLLBACK")
