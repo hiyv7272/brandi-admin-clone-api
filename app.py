@@ -2,7 +2,7 @@ from flask import Flask, g
 from flask_cors    import CORS
 
 import mysql.connector
-
+from config import S3_CONFIG
 from config import DATABASES
 from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
 from product.model.product_dao import ProductDao
@@ -32,7 +32,7 @@ def create_app():
 
     # Service layer
     services = Services
-    services.product_service = ProductService(product_dao)
+    services.product_service = ProductService(product_dao, S3_CONFIG)
     services.seller_service = SellerService(seller_dao)
 
     # Create endpoints
