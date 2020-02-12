@@ -1,7 +1,8 @@
 import mysql.connector
 
 from mysql.connector.errors import Error
-from flask      import abort
+from mysql.connector.cursor import MySQLCursor
+from flask                  import abort
 
 class SellerDao:
 
@@ -89,4 +90,45 @@ class SellerDao:
             query_rollback = ("ROLLBACK")
             db_cursor.execute(query_rollback)
             db_cursor.close()
+            abort(400, description="INVAILD_DATA")
+
+    """
+    유저정보 SELECT 메소드
+    """
+    def get_user_info(self, user_data):
+        db_cursor = self.db().cursor()
+        
+        try:
+            user_data = {
+                'account'  : user_data['account'],
+                'password' : user_data['password'],
+            }
+                
+            query_search = ("""
+                SELECT
+                    id,
+                    authorities_id,
+                    account,
+                    password
+                FROM accounts
+                WHERE account = %(account)s limit 1
+            """)
+
+            db_cursor.execute(query_search, user_data)
+
+            for row in db_cursor:
+                user_info = {
+                    'id' : row[0],
+                    'authorities_id' : row[1],
+                    'account' : row[2],
+                    'password' : row[3]
+                }
+                return user_info
+                       
+            db_cursor.close()
+
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
             abort(400, description="INVAILD_DATA")
