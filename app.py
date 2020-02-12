@@ -2,7 +2,7 @@ from flask import Flask, g
 from flask_cors    import CORS
 
 import mysql.connector
-from config import S3_CONFIG
+from config import S3_CONFIG, JWT_SECRET_KEY
 from config import DATABASES
 from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
 from product.model.product_dao import ProductDao
@@ -26,6 +26,7 @@ def make_config(app):
     app.config['S3_ACCESS_KEY'] = S3_CONFIG['S3_ACCESS_KEY']
     app.config['S3_SECRET_KEY'] = S3_CONFIG['S3_SECRET_KEY']
     app.config['S3_BUCKET_URL'] = S3_CONFIG['S3_BUCKET_URL']
+    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     return
 
 def create_app():

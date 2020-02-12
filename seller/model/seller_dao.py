@@ -9,6 +9,10 @@ class SellerDao:
     def __init__(self, database):
         self.db = database
 
+    
+    """
+    계정생성 INSERT INTO 메소드
+    """
     def insert_seller(self, new_seller):
         db_cursor = self.db().cursor()
       
@@ -32,7 +36,7 @@ class SellerDao:
             quert_autocommit_0 = ("SET AUTOCOMMIT=0")
             db_cursor.execute(quert_autocommit_0)
 
-            query_1 = ("""
+            insert_accounts = ("""
                 INSERT INTO accounts (
                     authorities_id,
                     account,
@@ -43,9 +47,9 @@ class SellerDao:
                     %(password)s
                 )
             """)
-            db_cursor.execute(query_1, new_seller_data)
+            db_cursor.execute(insert_accounts, new_seller_data)
 
-            query_2 = ("""
+            insert_sellers = ("""
                 INSERT INTO sellers (
                     accounts_id,
                     auth_groups_id,
@@ -63,8 +67,8 @@ class SellerDao:
                     is_used
                 ) VALUES (
                     (SELECT id FROM accounts WHERE account=%(account)s limit 1),
-                    (SELECT id FROM auth_groups WHERE name='셀러 입점' limit 1),
-                    (SELECT id from seller_status WHERE name='입점대기' limit 1),
+                    (SELECT id FROM auth_groups WHERE name=1 limit 1),
+                    (SELECT id from seller_status WHERE name=1 limit 1),
                     (SELECT id FROM seller_types WHERE id=%(seller_types_id)s limit 1),
                     %(account)s,
                     %(name_kr)s,
@@ -79,7 +83,7 @@ class SellerDao:
                 )
             """)
 
-            db_cursor.execute(query_2, new_seller_data)
+            db_cursor.execute(insert_sellers, new_seller_data)
             self.db().commit()
             db_cursor.close()
         
