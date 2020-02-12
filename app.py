@@ -21,9 +21,16 @@ def get_db():
 
     return g.db
 
+def make_config(app):
+    app.config['S3_BUCKET'] = S3_CONFIG['S3_BUCKET']
+    app.config['S3_ACCESS_KEY'] = S3_CONFIG['S3_ACCESS_KEY']
+    app.config['S3_SECRET_KEY'] = S3_CONFIG['S3_SECRET_KEY']
+    app.config['S3_BUCKET_URL'] = S3_CONFIG['S3_BUCKET_URL']
+    return
+
 def create_app():
     app = Flask(__name__)
-
+    make_config(app)
     CORS(app)
 
     # DataModel layer
@@ -32,7 +39,7 @@ def create_app():
 
     # Service layer
     services = Services
-    services.product_service = ProductService(product_dao, S3_CONFIG)
+    services.product_service = ProductService(product_dao)
     services.seller_service = SellerService(seller_dao)
 
     # Create endpoints

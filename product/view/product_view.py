@@ -22,11 +22,6 @@ class ProductView:
 
         @app.route("/product/image", methods=['POST'])
         def resize_upload_image():
-            req = request.form.get('data', '')
-            json_params = json.loads(req)
-
-            if 'image_size' not in json_params:
-                abort(400, description="INVALID PARAMS")
 
             if 'image_file' not in request.files:
                 abort(400, description="INVALID KEY")          
@@ -39,17 +34,9 @@ class ProductView:
             if not product_service.allowed_image_file(image_file.filename):
                 abort(400, description="FILE FORMAT NOT ALLOWD")
 
-            img_io, image_filename = product_service.resize_image(image_file, json_params['image_size'])
-
-            image_url = product_service.upload_image(
-                img_io,
-                image_filename
-            )
-
-            if os.path.exists(image_filename):
-                os.remove(image_filename)
+            image_url = product_service.resize_upload_image(image_file)
 
             if image_url:
-                return jsonify({'image_url' : image_url})
+                return jsonify(image_url)
             else:
                 abort(404, description="URI NOT FOUND")
