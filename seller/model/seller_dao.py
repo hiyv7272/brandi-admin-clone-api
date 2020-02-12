@@ -10,7 +10,7 @@ class SellerDao:
         self.db = database
 
     def insert_seller(self, new_seller):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db.cursor()
       
         try:
             new_seller_data = {
@@ -80,7 +80,7 @@ class SellerDao:
             """)
 
             db_cursor.execute(query_2, new_seller_data)
-            self.db().commit()
+            self.db.commit()
             db_cursor.close()
         
         except KeyError:
@@ -96,7 +96,7 @@ class SellerDao:
     유저정보 SELECT 메소드
     """
     def get_user_info(self, user_data):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db.cursor()
         
         try:
             user_data = {

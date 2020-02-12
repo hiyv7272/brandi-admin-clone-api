@@ -17,6 +17,7 @@ class ProductService:
         return '.' in filename and \
             filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS 
 
+
     def image_width_size(self, img_size):
         resizer={
             'small': (150, '_S'),
@@ -29,8 +30,9 @@ class ProductService:
 
         filename, file_extension = os.path.splitext(image_file.filename)
         image_size_list = ['small','medium','large']
+        
+        # 3가지 종류로 이미지를 리사이즈하고 S3에 업로드한 url을 딕셔너리로 저장
         img_urls = dict()
-
         for img_size in image_size_list:
             resize_width, separator = self.image_width_size(img_size)
             with Image.open(image_file) as opened_image:
@@ -42,6 +44,7 @@ class ProductService:
                 resized_image.save(img_io, 'jpeg')
                 img_io.seek(0)
 
+                # 사이즈별로 다른 파일명으로 smart open을 사용하여 S3로 업로드
                 uploaded_name = str(uuid4()) + filename + separator + file_extension
                 with open('s3://{}:{}@{}/{}'. \
                     format(current_app.config['S3_ACCESS_KEY'], \
@@ -57,4 +60,8 @@ class ProductService:
 
                     if uploaded_url:
                         img_urls[img_size] = uploaded_url
+
         return img_urls
+
+    def register_product(self, request):
+        self.product_dao.register_product_dao(request)

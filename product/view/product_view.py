@@ -1,5 +1,5 @@
 import os, io
-from flask import Flask, request, jsonify, json, abort
+from flask import Flask, request, jsonify, json, abort, Response
 from PIL import Image
 
 class ProductView:
@@ -40,3 +40,15 @@ class ProductView:
                 return jsonify(image_url)
             else:
                 abort(404, description="URI NOT FOUND")
+
+        """
+        상품을 데이터베이스에 등록하는 엔드포인트
+        ----------
+        request : application/json, 상품정보
+        -------
+        return : http 응답코드(200, 400)
+        """
+        @app.route("/product", methods=['POST'])
+        def register_product():
+            product_service.register_product(request)
+            return Response(status=200)

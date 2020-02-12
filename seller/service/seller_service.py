@@ -27,11 +27,6 @@ class SellerService():
 
         return None    
 
-
-    def create_new_seller(self, new_seller):
-
-
-    
     def create_new_seller(self, new_seller):
 
         try:

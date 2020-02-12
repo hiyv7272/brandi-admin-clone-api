@@ -15,12 +15,6 @@ from seller.view.seller_view import SellerView
 class Services:
     pass
 
-def get_db():
-    if 'db' not in g:
-        g.db = mysql.connector.connect(user=DATABASES['user'], password=DATABASES['password'], host=DATABASES['host'],database=DATABASES['database'])
-
-    return g.db
-
 def make_config(app):
     app.config['S3_BUCKET'] = S3_CONFIG['S3_BUCKET']
     app.config['S3_ACCESS_KEY'] = S3_CONFIG['S3_ACCESS_KEY']
@@ -31,11 +25,17 @@ def make_config(app):
 def create_app():
     app = Flask(__name__)
     make_config(app)
+    database_connector = mysql.connector.connect(
+        user=DATABASES['user'],
+        password=DATABASES['password'],
+        host=DATABASES['host'],
+        database=DATABASES['database'])
+    database_connector.autocommit = False
     CORS(app)
 
     # DataModel layer
-    product_dao = ProductDao(get_db)
-    seller_dao = SellerDao(get_db)
+    product_dao = ProductDao(database_connector)
+    seller_dao = SellerDao(database_connector)
 
     # Service layer
     services = Services
