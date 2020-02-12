@@ -11,7 +11,9 @@ class CustomJSONEncoder(JSONEncoder):
             return list(obj)
 
         return JSONEncoder.default(self, obj)
-""" 로그인 데코이터 구현
+
+""" 
+로그인 데코이터 구현
 """
 def login_decorator(f):      
     @wraps(f)                   
@@ -32,27 +34,45 @@ def login_decorator(f):
         return f(*args, **kwargs)
     return decorated_function
 
+""" 
+셀러 endpoints
+"""
 class SellerView:
 
+    """ 
+    셀러 endpoints 생성 메소드
+    """
     def create_endpoints(app, services):
 
         app.json_encoder = CustomJSONEncoder
         seller_service  = services.seller_service
 
+        """
+        에러핸들러(400)
+        """
         @app.errorhandler(400)
         def bad_request(error):
             response = jsonify({'message': error.description})
             response.status_code = 400
             return response
 
+        """
+        에러핸들러(404)
+        """
         @app.errorhandler(404)
         def page_not_found(error):
             return "INVALID_URL", 404
         
+        """
+        에러핸들러(405)
+        """
         @app.errorhandler(405)
         def method_not_allowed(error):
             return "INVALID_REQUEST", 405
         
+        """
+        셀러회원가입 엔드포인트
+        """
         @app.route("/seller/sign-up", methods=['POST'])
         def sign_up():
 
@@ -61,6 +81,9 @@ class SellerView:
 
             return jsonify({'message':'SUCCESS'}, 200)
 
+        """
+        회원로그인 엔드포인트
+        """
         @app.route("/login", methods=['POST'])
         def login():
             user_data = request.json
