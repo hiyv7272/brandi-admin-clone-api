@@ -2,7 +2,7 @@ from flask import Flask, g
 from flask_cors    import CORS
 
 import mysql.connector
-
+from config import S3_CONFIG
 from config import DATABASES
 from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
 from product.model.product_dao import ProductDao
@@ -21,9 +21,16 @@ def get_db():
 
     return g.db
 
+def make_config(app):
+    app.config['S3_BUCKET'] = S3_CONFIG['S3_BUCKET']
+    app.config['S3_ACCESS_KEY'] = S3_CONFIG['S3_ACCESS_KEY']
+    app.config['S3_SECRET_KEY'] = S3_CONFIG['S3_SECRET_KEY']
+    app.config['S3_BUCKET_URL'] = S3_CONFIG['S3_BUCKET_URL']
+    return
+
 def create_app():
     app = Flask(__name__)
-
+    make_config(app)
     CORS(app)
 
     # DataModel layer
