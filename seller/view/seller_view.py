@@ -1,5 +1,8 @@
+import jwt
+
 from flask      import request, Response, jsonify, current_app, g, abort
 from flask.json import JSONEncoder
+from functools  import wraps
 
 
 class CustomJSONEncoder(JSONEncoder):
@@ -8,6 +11,26 @@ class CustomJSONEncoder(JSONEncoder):
             return list(obj)
 
         return JSONEncoder.default(self, obj)
+""" 로그인 데코이터 구현
+"""
+def login_decorator(f):      
+    @wraps(f)                   
+    def decorated_function(*args, **kwargs):
+        access_token = request.headers.get('Authorization') 
+        if access_token is not None:  
+            try:
+                payload = jwt.decode(access_token, current_app.config['JWT_SECRET_KEY'], 'HS256')
+            except jwt.InvalidTokenError:
+                 payload = None     
+
+            if payload is None: 
+                return Response(status=401)   
+            g.user_info = payload
+        else:
+            abort (401, description="INVALID_TOKEN") 
+
+        return f(*args, **kwargs)
+    return decorated_function
 
 class SellerView:
 
@@ -37,10 +60,7 @@ class SellerView:
             new_seller = seller_service.create_new_seller(new_seller)
 
             return jsonify({'message':'SUCCESS'}, 200)
-        
-        """ 
-        로그인 endpoint
-        """
+
         @app.route("/login", methods=['POST'])
         def login():
             user_data = request.json
