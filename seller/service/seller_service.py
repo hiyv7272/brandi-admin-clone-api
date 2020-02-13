@@ -104,6 +104,9 @@ class SellerService():
         
         return token.decode('UTF-8')
 
+    """
+    권한에 따른 메뉴 확인 메소드
+    """
     def menu_service(self, user_info):
         user_authorities_id = user_info['authorities_id']
         
