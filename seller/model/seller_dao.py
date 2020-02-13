@@ -9,7 +9,6 @@ class SellerDao:
     def __init__(self, database):
         self.db = database
 
-    
     """
     계정생성 INSERT INTO 메소드
     """
@@ -18,16 +17,16 @@ class SellerDao:
       
         try:
             new_seller_data = {
-                'seller_types_id' : new_seller['seller_types_id'],
-                'account'  : new_seller['account'],
-                'name_kr'  : new_seller['name_kr'],
-                'name_en'  : new_seller['name_en'],
-                'password' : new_seller['password'],
-                'mobile_number' : new_seller['mobile_number'],
-                'cs_phone_number' : new_seller['cs_phone_number'],
-                'site_url' : new_seller['site_url'],
-                'instagram_account' : new_seller['instagram_account'],
-                'cs_kakao_account' : new_seller['cs_kakao_account'],
+                'seller_types_id'       : new_seller['seller_types_id'],
+                'account'               : new_seller['account'],
+                'name_kr'               : new_seller['name_kr'],
+                'name_en'               : new_seller['name_en'],
+                'password'              : new_seller['password'],
+                'mobile_number'         : new_seller['mobile_number'],
+                'cs_phone_number'       : new_seller['cs_phone_number'],
+                'site_url'              : new_seller['site_url'],
+                'instagram_account'     : new_seller['instagram_account'],
+                'cs_kakao_account'      : new_seller['cs_kakao_account'],
             }
 
             query_start = ("START TRANSACTION")
@@ -42,7 +41,7 @@ class SellerDao:
                     account,
                     password
                 ) VALUES(
-                    (SELECT id FROM authorities WHERE name='셀러' limit 1),
+                    (SELECT id FROM authorities WHERE id = 2),
                     %(account)s,
                     %(password)s
                 )
@@ -66,10 +65,10 @@ class SellerDao:
                     cs_kakao_account,
                     is_used
                 ) VALUES (
-                    (SELECT id FROM accounts WHERE account=%(account)s limit 1),
-                    (SELECT id FROM auth_groups WHERE name=1 limit 1),
-                    (SELECT id from seller_status WHERE name=1 limit 1),
-                    (SELECT id FROM seller_types WHERE id=%(seller_types_id)s limit 1),
+                    (SELECT id FROM accounts WHERE account = %(account)s limit 1),
+                    (SELECT id FROM auth_groups WHERE id = 1),
+                    (SELECT id FROM seller_status WHERE id = 1),
+                    (SELECT id FROM seller_types WHERE id = %(seller_types_id)s limit 1),
                     %(account)s,
                     %(name_kr)s,
                     %(name_en)s, 

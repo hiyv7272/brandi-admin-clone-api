@@ -26,7 +26,7 @@ def make_config(app):
     app.config['S3_ACCESS_KEY'] = S3_CONFIG['S3_ACCESS_KEY']
     app.config['S3_SECRET_KEY'] = S3_CONFIG['S3_SECRET_KEY']
     app.config['S3_BUCKET_URL'] = S3_CONFIG['S3_BUCKET_URL']
-    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
     return
 
 def create_app():

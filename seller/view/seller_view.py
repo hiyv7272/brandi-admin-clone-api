@@ -13,7 +13,11 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 """ 
-로그인 데코이터 구현
+로그인 데코레이터
+---------------
+request : application/json, account 정보
+---------------
+return : http 응답코드(400, 401)
 """
 def login_decorator(f):      
     @wraps(f)                   
@@ -72,6 +76,10 @@ class SellerView:
         
         """
         셀러회원가입 엔드포인트
+        -------------------
+        request : application/json, 상품정보
+        -------------------
+        return : http 응답코드 (200, 400, 401)
         """
         @app.route("/seller/sign-up", methods=['POST'])
         def sign_up():
@@ -83,6 +91,10 @@ class SellerView:
 
         """
         회원로그인 엔드포인트
+        -------------------
+        request : application/json, 상품정보
+        -------------------
+        return : http 응답코드 (200, 400, 401)
         """
         @app.route("/login", methods=['POST'])
         def login():
