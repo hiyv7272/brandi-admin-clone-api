@@ -30,8 +30,7 @@ def login_decorator(f):
                  payload = None     
 
             if payload is None: 
-                return Response(status=401)
-            print('payload @login-decorator', payload)   
+                return Response(status=401)   
             g.user_info = payload
         else:
             abort (401, description="INVALID_TOKEN") 
@@ -109,7 +108,6 @@ class SellerView:
                 })
             except:
                 return '', 401
-
 
         """
         메뉴 엔드포인트

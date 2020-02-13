@@ -78,9 +78,8 @@ class SellerService():
     def login_check(self, user_data):
         try:
             validation      = self.validate(user_data)
-            account         = user_data['account']
             password        = user_data['password']
-            user_info = self.seller_dao.get_user_info(user_data)
+            user_info       = self.seller_dao.get_user_info(user_data)
 
             if bcrypt.checkpw(password.encode('UTF-8'), user_info['password'].encode('UTF-8')):
                 return user_info
@@ -94,7 +93,7 @@ class SellerService():
     access_token(JWT) 생성 메소드
     """
     def generate_access_token(self, user_info):
-
+        print(user_info)
         payload = {     
             'accounts_id'    : user_info['id'],
             'authorities_id' : user_info['authorities_id'],
@@ -117,3 +116,6 @@ class SellerService():
         if user_authorities_id == 2:
             seller_menu = self.seller_dao.seller_auth_group_menu(user_info)
             return seller_menu
+        
+        if user_authorities_id > 2:
+            abort (400, description="INVALID_KEY")
