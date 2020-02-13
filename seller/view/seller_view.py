@@ -13,7 +13,11 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 """ 
-로그인 데코이터 구현
+로그인 데코레이터
+---------------
+request : application/json, account 정보
+---------------
+return : http 응답코드(400, 401)
 """
 def login_decorator(f):      
     @wraps(f)                   
@@ -26,7 +30,8 @@ def login_decorator(f):
                  payload = None     
 
             if payload is None: 
-                return Response(status=401)   
+                return Response(status=401)
+            print('payload @login-decorator', payload)   
             g.user_info = payload
         else:
             abort (401, description="INVALID_TOKEN") 
@@ -72,6 +77,10 @@ class SellerView:
         
         """
         셀러회원가입 엔드포인트
+        -------------------
+        request : application/json, 상품정보
+        -------------------
+        return : http 응답코드 (200, 400, 401)
         """
         @app.route("/seller/sign-up", methods=['POST'])
         def sign_up():
@@ -83,6 +92,10 @@ class SellerView:
 
         """
         회원로그인 엔드포인트
+        -------------------
+        request : application/json, 상품정보
+        -------------------
+        return : http 응답코드 (200, 400, 401)
         """
         @app.route("/login", methods=['POST'])
         def login():
@@ -96,3 +109,12 @@ class SellerView:
                 })
             except:
                 return '', 401
+
+
+        @app.route('/menu', methods=['GET'])
+        @login_decorator
+        def test():       
+            test = seller_service.menu_service(g.user_info)
+            return jsonify({
+                'menu' : test
+            })
