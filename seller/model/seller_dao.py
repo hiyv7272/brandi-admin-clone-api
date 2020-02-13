@@ -16,6 +16,7 @@ class SellerDao:
         db_cursor = self.db().cursor()
       
         try:
+            # POST 받은 account 정보
             new_seller_data = {
                 'seller_types_id'       : new_seller['seller_types_id'],
                 'account'               : new_seller['account'],
@@ -29,12 +30,15 @@ class SellerDao:
                 'cs_kakao_account'      : new_seller['cs_kakao_account'],
             }
 
+            # 트랜잭션 시작 
             query_start = ("START TRANSACTION")
             db_cursor.execute(query_start)
 
+            # 자동 커밋 비활성화
             quert_autocommit_0 = ("SET AUTOCOMMIT=0")
             db_cursor.execute(quert_autocommit_0)
 
+            # accounts 테이블 INSERT INTO문
             insert_accounts = ("""
                 INSERT INTO accounts (
                     authorities_id,
@@ -47,13 +51,25 @@ class SellerDao:
                 )
             """)
             db_cursor.execute(insert_accounts, new_seller_data)
+            
+            # sellers_info 테이블 INSERT INTO문
+            insert_selles_info = ("""
+                INSERT INTO sellers_info (
+                    accounts_id
+                ) VALUES (
+                    (SELECT id FROM accounts WHERE account = %(account)s limit 1)
+                )
+            """)
+            db_cursor.execute(insert_selles_info, new_seller_data)
 
+            # sellers 테이블 INSERT INTO문
             insert_sellers = ("""
                 INSERT INTO sellers (
                     accounts_id,
                     auth_groups_id,
                     seller_status_id,
                     seller_types_id,
+                    seller_info_id,
                     account,
                     name_kr,
                     name_en,
@@ -69,6 +85,8 @@ class SellerDao:
                     (SELECT id FROM auth_groups WHERE id = 1),
                     (SELECT id FROM seller_status WHERE id = 1),
                     (SELECT id FROM seller_types WHERE id = %(seller_types_id)s limit 1),
+                    (SELECT id FROM sellers_info WHERE accounts_id = 
+                    (SELECT id FROM accounts WHERE account = %(account)s limit 1) limit 1),
                     %(account)s,
                     %(name_kr)s,
                     %(name_en)s, 
@@ -81,8 +99,22 @@ class SellerDao:
                     TRUE
                 )
             """)
-
             db_cursor.execute(insert_sellers, new_seller_data)
+
+            # seller_representative 테이블 INSERT INTO문
+            insert_seller_representative = ("""
+                INSERT INTO seller_representative (
+                    sellers_id,
+                    mobile_number,
+                    is_used
+                ) VALUES (
+                    (SELECT id FROM sellers WHERE account = %(account)s limit 1),
+                    %(mobile_number)s,
+                    TRUE
+                )
+            """)
+            db_cursor.execute(insert_seller_representative, new_seller_data)
+            
             self.db().commit()
             db_cursor.close()
         
