@@ -101,6 +101,7 @@ class SellerService():
         }
         token = jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], 'HS256')
         
+<<<<<<< HEAD
         return token.decode('UTF-8')
 
     """
@@ -119,3 +120,6 @@ class SellerService():
         
         if user_authorities_id > 2:
             abort (400, description="INVALID_KEY")
+=======
+        return token.decode('UTF-8')
+>>>>>>> master
