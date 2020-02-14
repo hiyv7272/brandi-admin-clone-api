@@ -2,6 +2,7 @@ from flask import Flask, g
 from flask_cors    import CORS
 
 import mysql.connector
+import mysql.connector.pooling
 from config import S3_CONFIG
 from config import DATABASES
 from static.swagger_ui import SWAGGERUI_BLUEPRINT, SWAGGER_URL
@@ -25,26 +26,33 @@ def make_config(app):
 def create_app():
     app = Flask(__name__)
     make_config(app)
-    database_connector = mysql.connector.connect(
-        user=DATABASES['user'],
-        password=DATABASES['password'],
-        host=DATABASES['host'],
-        database=DATABASES['database'])
-    database_connector.autocommit = False
+
+    dbconfig = {
+        'database': DATABASES['database'],
+	    'user': DATABASES['user'],
+	    'password': DATABASES['password'],
+	    'host': DATABASES['host'],
+	    'port': DATABASES['port'],
+    }
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(pool_name = "mypool", pool_size=3, **dbconfig)
+
+    print("Connection Pool Name - ", connection_pool.pool_name)
+    print("Connection Pool Size - ", connection_pool.pool_size)
+
     CORS(app)
 
     # DataModel layer
-    product_dao = ProductDao(database_connector)
-    seller_dao = SellerDao(database_connector)
+    product_dao = ProductDao(connection_pool)
+    # seller_dao = SellerDao(connection_pool)
 
     # Service layer
     services = Services
     services.product_service = ProductService(product_dao)
-    services.seller_service = SellerService(seller_dao)
+    # services.seller_service = SellerService(seller_dao)
 
     # Create endpoints
     ProductView.create_endpoints(app, services)
-    SellerView.create_endpoints(app, services)
+    # SellerView.create_endpoints(app, services)
 
     # Swagger ui
     app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
