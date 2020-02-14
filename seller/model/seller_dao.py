@@ -7,13 +7,13 @@ from flask                  import abort
 class SellerDao:
 
     def __init__(self, database):
-        self.db = database
+        self.db_connection = database.get_connection()
 
     """
     계정생성 INSERT INTO 메소드
     """
     def insert_seller(self, new_seller):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db_connection.cursor()
       
         try:
             # POST 받은 account 정보
@@ -115,7 +115,7 @@ class SellerDao:
             """)
             db_cursor.execute(insert_seller_representative, new_seller_data)
             
-            self.db().commit()
+            self.db_connection.commit()
             db_cursor.close()
         
         except KeyError:
@@ -131,7 +131,7 @@ class SellerDao:
     유저정보 SELECT 메소드
     """
     def get_user_info(self, user_data):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db_connection.cursor()
         
         try:
             user_data = {
