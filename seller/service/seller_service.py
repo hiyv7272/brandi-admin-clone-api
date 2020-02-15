@@ -59,8 +59,8 @@ class SellerService():
     """
     def create_new_seller(self, new_seller):
         try:
-            validation      = self.validate(new_seller) 
-            new_seller['password'] = bcrypt.hashpw(  
+            validation              = self.validate(new_seller) 
+            new_seller['password']  = bcrypt.hashpw(  
                 new_seller['password'].encode('UTF-8'),
                 bcrypt.gensalt()
             )
@@ -93,15 +93,13 @@ class SellerService():
     access_token(JWT) 생성 메소드
     """
     def generate_access_token(self, user_info):
-        print(user_info)
         payload = {     
             'accounts_id'    : user_info['id'],
             'authorities_id' : user_info['authorities_id'],
             'exp'            : datetime.utcnow() + timedelta(seconds = 60 * 60 * 24)
         }
         token = jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], 'HS256')
-        
-<<<<<<< HEAD
+
         return token.decode('UTF-8')
 
     """
@@ -117,9 +115,6 @@ class SellerService():
         if user_authorities_id == 2:
             seller_menu = self.seller_dao.seller_auth_group_menu(user_info)
             return seller_menu
-        
+
         if user_authorities_id > 2:
             abort (400, description="INVALID_KEY")
-=======
-        return token.decode('UTF-8')
->>>>>>> master

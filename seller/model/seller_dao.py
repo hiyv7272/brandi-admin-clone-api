@@ -172,7 +172,7 @@ class SellerDao:
     마스터 권한_그룹_메뉴 정보 SELECT 메소드
     """
     def master_auth_group_menu(self, master_info):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db_connection.cursor()
         try:
             master_menu = []
 
@@ -238,6 +238,7 @@ class SellerDao:
                             master_menu[i]['list'].append(master_bottom_menu)
 
             return master_menu
+            self.db_connection.commit()
             db_cursor.close()
         
         except KeyError:
@@ -250,7 +251,7 @@ class SellerDao:
     셀러 권한_그룹_메뉴 정보 SELECT 메소드
     """
     def seller_auth_group_menu(self, seller_info):
-        db_cursor = self.db().cursor()
+        db_cursor = self.db_connection.cursor()
         try:
             seller_menu = []
 
@@ -316,6 +317,7 @@ class SellerDao:
                             seller_menu[i]['list'].append(seller_bottom_menu)
 
             return seller_menu
+            self.db_connection.commit()
             db_cursor.close()
         
         except KeyError:
