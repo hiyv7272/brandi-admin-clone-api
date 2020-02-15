@@ -238,6 +238,7 @@ class SellerDao:
                             master_menu[i]['list'].append(master_bottom_menu)
 
             return master_menu
+            self.db_connection.commit()
             db_cursor.close()
         
         except KeyError:
@@ -316,6 +317,7 @@ class SellerDao:
                             seller_menu[i]['list'].append(seller_bottom_menu)
 
             return seller_menu
+            self.db_connection.commit()
             db_cursor.close()
         
         except KeyError:
