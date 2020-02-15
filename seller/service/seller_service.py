@@ -100,7 +100,7 @@ class SellerService():
             'exp'            : datetime.utcnow() + timedelta(seconds = 60 * 60 * 24)
         }
         token = jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], 'HS256')
-        
+
         return token.decode('UTF-8')
 
     """
