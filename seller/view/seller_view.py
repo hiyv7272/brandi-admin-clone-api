@@ -77,7 +77,7 @@ class SellerView:
         """
         셀러회원가입 엔드포인트
         -------------------
-        request : application/json, 상품정보
+        request : application/json, account 정보
         -------------------
         return : http 응답코드 (200, 400, 401)
         """
@@ -92,7 +92,7 @@ class SellerView:
         """
         회원로그인 엔드포인트
         -------------------
-        request : application/json, 상품정보
+        request : application/json, account 정보
         -------------------
         return : http 응답코드 (200, 400, 401)
         """
@@ -108,3 +108,18 @@ class SellerView:
                 })
             except:
                 return '', 401
+
+        """
+        메뉴 엔드포인트
+        -------------------
+        request : JWT
+        -------------------
+        return : http 응답코드 (200, 400, 401), 권한에 따른 메뉴 정보
+        """
+        @app.route('/menu', methods=['GET'])
+        @login_decorator
+        def test():       
+            test = seller_service.menu_service(g.user_info)
+            return jsonify({
+                'menu' : test
+            })

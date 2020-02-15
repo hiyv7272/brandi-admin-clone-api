@@ -59,8 +59,8 @@ class SellerService():
     """
     def create_new_seller(self, new_seller):
         try:
-            validation      = self.validate(new_seller) 
-            new_seller['password'] = bcrypt.hashpw(  
+            validation              = self.validate(new_seller) 
+            new_seller['password']  = bcrypt.hashpw(  
                 new_seller['password'].encode('UTF-8'),
                 bcrypt.gensalt()
             )
@@ -102,3 +102,20 @@ class SellerService():
         token = jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], 'HS256')
         
         return token.decode('UTF-8')
+
+    """
+    권한에 따른 메뉴 확인 메소드
+    """
+    def menu_service(self, user_info):
+        user_authorities_id = user_info['authorities_id']
+        
+        if user_authorities_id == 1:
+            master_menu = self.seller_dao.master_auth_group_menu(user_info)
+            return master_menu
+
+        if user_authorities_id == 2:
+            seller_menu = self.seller_dao.seller_auth_group_menu(user_info)
+            return seller_menu
+        
+        if user_authorities_id > 2:
+            abort (400, description="INVALID_KEY")
