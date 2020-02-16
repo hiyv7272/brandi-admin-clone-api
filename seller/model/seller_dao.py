@@ -325,3 +325,106 @@ class SellerDao:
 
         except mysql.connector.Error as err:
             abort(400, description="INVAILD_DATA")
+
+
+    """
+    셀러 정보 SELECT 메소드
+    """
+    def get_seller_info(self, seller_info):
+        db_cursor = self.db_connection.cursor()
+        
+        try:
+            seller_data = {
+                'accounts_id'    : seller_info['accounts_id'],
+                'authorities_id' : seller_info['authorities_id'],
+            }
+
+             # 셀러 정보 SELECT 문
+            query_get_seller_info = ("""
+                SELECT
+                    a.accounts_id,
+                    a.name_kr,
+                    a.name_en,
+                    a.cs_phone_number,
+                    a.site_url,
+                    a.instagram_account,
+                    a.cs_kakao_account,
+                    b.profile_image,
+                    b.ceo_name,
+                    b.company_name,
+                    b.company_code,
+                    b.company_certi_image,
+                    b.mail_order_code,
+                    b.mail_order_image,
+                    b.bg_image,
+                    b.single_line_intro,
+                    b.detailed_intro,
+                    b.shopping_info,
+                    b.refund_info
+                FROM sellers AS a
+                INNER JOIN sellers_info AS b
+                ON a.seller_info_id = b.id
+                WHERE a.accounts_id = %(accounts_id)s limit 1
+            """)
+            db_cursor.execute(query_get_seller_info, seller_data)
+
+            for row in db_cursor:
+                seller_info = {
+                    'accounts_id' : row[0],
+                    'name_kr' : row[1],
+                    'name_en' : row[2],
+                    'cs_phone_number' : row[3],
+                    'site_url' : row[4],
+                    'instagram_account' : row[5],
+                    'cs_kakao_account' : row[6],
+                    'profile_image' : row[7],
+                    'ceo_name' : row[8],
+                    'company_name' : row[9],
+                    'company_code' : row[10],
+                    'company_certi_image' : row[11],
+                    'mail_order_code' : row[12],
+                    'mail_order_image' : row[13],
+                    'bg_image' : row[14],
+                    'single_line_intro' : row[15],
+                    'detailed_intro' : row[16],
+                    'shopping_info' : row[17],
+                    'refund_info' : row[18],
+                    'seller_representative' : []
+                }
+            
+             # 셀러 담당자 SELECT 문
+            query_get_seller_representative = ("""
+                SELECT
+                id,
+                sellers_id,
+                name,
+                mobile_number,
+                email,
+                is_used
+                FROM seller_representative
+                WHERE sellers_id =
+                (SELECT id FROM sellers WHERE accounts_id = %(accounts_id)s)
+            """)
+            db_cursor.execute(query_get_seller_representative, seller_data)
+            seller_representative_data = db_cursor.fetchall()
+
+            for i in range(len(seller_representative_data)):
+                seller_representative = {
+                    'id' : seller_representative_data[i][0],
+                    'sellers_id' : seller_representative_data[i][1],
+                    'name' : seller_representative_data[i][2],
+                    'mobile_number' : seller_representative_data[i][3],
+                    'email' : seller_representative_data[i][4],
+                    'is_used' : seller_representative_data[i][5]
+                }
+                print('finally',seller_representative)
+                seller_info['seller_representative'].append(seller_representative)
+            return seller_info
+
+            db_cursor.close()
+
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
+            abort(400, description="INVAILD_DATA")

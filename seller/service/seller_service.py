@@ -170,3 +170,12 @@ class SellerService():
             img_urls['url'] = uploaded_url
 
         return img_urls
+
+    """
+    셀러정보를 확인하는 메소드
+    """
+    def seller_info_check(self, seller_info):
+        
+        seller_info  = self.seller_dao.get_seller_info(seller_info)
+            
+        return seller_info

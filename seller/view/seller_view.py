@@ -150,3 +150,19 @@ class SellerView:
                 return jsonify(image_url)
             else:
                 abort(404, description="URI NOT FOUND")
+
+        """
+        셀러정보 GET 엔드포인트
+        -------------------
+        request : JWT
+        -------------------
+        return : http 응답코드 (200, 400, 401), 셀러에 따른 셀러정보
+        """
+        @app.route("/seller/info-get", methods=['GET'])
+        @login_decorator
+        def seller_info_get():
+            seller_info = seller_service.seller_info_check(g.user_info)
+
+            return jsonify({
+                'seller_info' : seller_info
+            })
