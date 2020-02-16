@@ -123,3 +123,46 @@ class SellerView:
             return jsonify({
                 'menu' : user_menu
             })
+
+        """
+        셀러정보에서 원본이미지를 등록하는 엔드포인트
+        ----------
+        request : 원본 이미지 ([('upload', <FileStorage: 'sample_image.jpg' ('image/jpeg')>)])
+        -------
+        return : http 응답코드, 파일 포맷이 jpg/jpeg 아니면 400 에러 리턴
+        """        
+        @app.route("/seller/image-upload", methods=['POST'])
+        def seller_image_upload():
+            req_json = request.files.to_dict(flat=False)
+            if 'upload' not in req_json:
+                abort(400, description="INVALID KEY")          
+
+            image_file = req_json['upload']
+            image_file_to_send = image_file[0]
+            if not seller_service.allowed_image_file(image_file_to_send.filename):
+                abort(400, description="FILE FORMAT NOT ALLOWD")
+
+            # 이미지 처리 요청
+            image_url = seller_service.upload_original_image(image_file_to_send)
+
+            # 처리 결과 리턴
+            if image_url:
+                return jsonify(image_url)
+            else:
+                abort(404, description="URI NOT FOUND")
+
+        """
+        셀러정보 GET 엔드포인트
+        -------------------
+        request : JWT
+        -------------------
+        return : http 응답코드 (200, 400, 401), 셀러에 따른 셀러정보
+        """
+        @app.route("/seller/info-get", methods=['GET'])
+        @login_decorator
+        def seller_info_get():
+            seller_info = seller_service.seller_info_check(g.user_info)
+
+            return jsonify({
+                'seller_info' : seller_info
+            })
