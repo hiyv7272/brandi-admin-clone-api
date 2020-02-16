@@ -118,10 +118,10 @@ class SellerView:
         """
         @app.route('/menu', methods=['GET'])
         @login_decorator
-        def test():       
-            test = seller_service.menu_service(g.user_info)
+        def menu():       
+            user_menu = seller_service.menu_service(g.user_info)
             return jsonify({
-                'menu' : test
+                'menu' : user_menu
             })
 
         """
