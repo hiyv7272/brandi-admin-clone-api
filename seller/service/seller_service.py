@@ -31,18 +31,18 @@ class SellerService():
         check_name_en   = re.compile("[a-z0-9]{1,20}$")
         check_site_url  = re.compile("^(https?)\:\/\/+[A-Za-z0-9-_.]{1,}$")
 
-        if data['account']:
+        if 'account' in data:
             if not check_account.match(data['account']):
                 abort (400, description="INVALID_ACCOUNT")
-        
-        if data['password']:
+
+        if 'password' in data:
             if not check_password.match(data['password']):
                 abort (400, description="INVALID_PASSWORD")
-        
+
         if 'cs_phone_number' in data:
             if not check_number.match(data['cs_phone_number']):
                 abort (400, description="INVALID_PHONE_NUMBER")
-        
+
         if 'mobile_number' in data:
             if not check_number.match(data['mobile_number']):
                 abort (400, description="INVALID_MOBILE_NUMBER")
@@ -90,11 +90,11 @@ class SellerService():
 
             if bcrypt.checkpw(password.encode('UTF-8'), user_info['password'].encode('UTF-8')):
                 return user_info
+            else:
+                abort (400, description="INVALID_USER")
 
         except KeyError:
             abort (400, description="INVALID_KEY")
-        except:
-            abort (400, description="INVALID_USER")
             
     """
     access_token(JWT) 생성 메소드
@@ -179,3 +179,53 @@ class SellerService():
         seller_info  = self.seller_dao.get_seller_info(seller_info)
             
         return seller_info
+
+    """
+    셀러정보를 업데이트하는 메소드
+    """
+    def update_seller_info(self, seller_request_data, user_info):
+        try:
+            seller_data = {
+                'accounts_id'       : user_info['accounts_id'],
+                'name_kr'           : seller_request_data['seller_info']['name_kr'],
+                'name_en'           : seller_request_data['seller_info']['name_en'],
+                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
+                'site_url'          : seller_request_data['seller_info']['site_url'],
+                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
+                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account']
+            }
+
+            seller_info_data = {
+                'accounts_id'           : user_info['accounts_id'],
+                'profile_image'         : seller_request_data['seller_info']['profile_image'],
+                'ceo_name'              : seller_request_data['seller_info']['ceo_name'],
+                'company_name'          : seller_request_data['seller_info']['company_name'],
+                'company_code'          : seller_request_data['seller_info']['company_code'],
+                'company_certi_image'   : seller_request_data['seller_info']['company_certi_image'],
+                'mail_order_code'       : seller_request_data['seller_info']['mail_order_code'],
+                'mail_order_image'      : seller_request_data['seller_info']['mail_order_image'],
+                'bg_image'              : seller_request_data['seller_info']['bg_image'],
+                'single_line_intro'     : seller_request_data['seller_info']['single_line_intro'],
+                'detailed_intro'        : seller_request_data['seller_info']['detailed_intro'],
+                'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
+                'refund_info'           : seller_request_data['seller_info']['refund_info']
+            }
+            
+            seller_representative_data = seller_request_data['seller_info']['seller_representative']
+
+            for i in range(len(seller_representative_data)):
+                seller_representative_data[i]['accounts_id'] = user_info['accounts_id']
+
+            validation          = self.validate(seller_data)
+            validation          = self.validate(seller_info_data)
+
+            for i in range(len(seller_representative_data)):
+                validation          = self.validate(seller_representative_data[i])
+                
+            update_seller_info              = self.seller_dao.update_seller_info(seller_data, seller_info_data)
+            update_seller_representative    = self.seller_dao.update_seller_representative(seller_representative_data)
+ 
+            return update_seller_info
+        
+        except KeyError:
+            abort (400, description="INVALID_KEY")

@@ -166,3 +166,18 @@ class SellerView:
             return jsonify({
                 'seller_info' : seller_info
             })
+
+        """
+        셀러정보 UPDATE 엔드포인트
+        -------------------
+        request : JWT, application/json, 셀러정보
+        -------------------
+        return : http 응답코드 (200, 400, 401)
+        """
+        @app.route("/seller/info-update", methods=['POST'])
+        @login_decorator
+        def seller_info_update():
+            seller_request_data = request.json
+            seller_info_update  = seller_service.update_seller_info(seller_request_data, g.user_info)
+
+            return jsonify({'message':'SUCCESS'}, 200)
