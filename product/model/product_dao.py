@@ -304,8 +304,96 @@ class ProductDao:
             # print("products_inserted_successfully")
 
         except KeyError as e:
-            # print("except KeyError")
-            # print(str(e))
+            print("except KeyError")
+            print(str(e))
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as error:
+            # 에러시 롤백
+            print("Failed to update record to database rollback: {}".format(error))
+            db_cursor.rollback()
+
+        finally:
+            # print("finally cursor close")
+            db_cursor.close()
+
+    def get_product_detail(self, db_cursor, product_code):
+        product_detail_data = {
+            'serial_number' : product_code
+        }
+        products_detail_query = "SELECT *, COUNT(*) FROM products WHERE serial_number=%(serial_number)s"
+        db_cursor.execute(products_detail_query, product_detail_data)
+        product = db_cursor.fetchone()
+        
+        # 상품코드에 해당하는 상품이 없으면 에러리턴
+        if product['COUNT(*)'] < 1:
+            abort(400, description="NO PRODUCT")
+        # print('product=',end=''),print(product)
+
+        return product
+
+    # 기본 옵션 id를 name으로 바꿔주는 함수
+    def replace_basic_option_with_name(self, db_cursor, option):
+        options_data = {
+            'basic_options_colors_id' : option['basic_options_colors_id'],
+            'basic_options_sizes_id' : option['basic_options_sizes_id']
+        }
+        options_color_query = "SELECT name FROM basic_options_colors WHERE id=%(basic_options_colors_id)s"
+        db_cursor.execute(options_color_query, options_data)
+        option_color_name = db_cursor.fetchone()
+        option['basic_options_colors_id'] = option_color_name['name']
+
+        options_sizes_query = "SELECT name FROM basic_options_sizes WHERE id=%(basic_options_sizes_id)s"
+        db_cursor.execute(options_sizes_query, options_data)
+        option_size_name = db_cursor.fetchone()
+        option['basic_options_sizes_id'] = option_size_name['name']
+        return
+
+    # 옵션 타입을 확인하여 기본정보가 추가된 상품이면 기본옵션 정보를 불러오는 함수
+    def get_basic_options(self, db_cursor, product_code):
+        option_info_id = int(product_code['option_info_id'])
+        option_info_data = {
+            'option_info_id' : option_info_id
+        }
+        option_info_query = "SELECT option_types_id FROM option_info WHERE id=%(option_info_id)s"
+        db_cursor.execute(option_info_query, option_info_data)
+        option_info = db_cursor.fetchone()
+
+        if option_info['option_types_id'] is self.BASIC_OPTION:
+            basic_options_query = ("""
+                SELECT 
+                    basic_options_colors_id,
+                    basic_options_sizes_id,
+                    is_stock_managed,
+                    stock_volume
+                FROM basic_options 
+                WHERE option_info_id=%(option_info_id)s
+            """)
+            db_cursor.execute(basic_options_query, option_info_data)
+            basic_option = db_cursor.fetchall()
+
+            for option in basic_option:
+                self.replace_basic_option_with_name(db_cursor, option)
+            return basic_option
+
+    # 상세 상품 정보를 DB에서 조회하여 리턴하는 함수
+    def product_detail_dao(self, product_code):
+        try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+            product = self.get_product_detail(db_cursor, product_code)
+
+            # 기본 옵션 정보 추가
+            basic_options=self.get_basic_options(db_cursor, product)
+
+            # product 변수에 basic_options 키와 값을 추가
+            product['basic_options'] = basic_options
+
+            # print('final product return check=',end=''),print(product) # debug print
+            return product
+        
+        except KeyError as e:
+            print("except KeyError")
+            print(str(e))
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as error:
