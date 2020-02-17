@@ -107,9 +107,20 @@ class SellerDao:
                     sellers_id,
                     mobile_number,
                     is_used
-                ) VALUES (
+                ) VALUES 
+                (
                     (SELECT id FROM sellers WHERE account = %(account)s limit 1),
                     %(mobile_number)s,
+                    TRUE
+                ),
+                (
+                    (SELECT id FROM sellers WHERE account = %(account)s limit 1),
+                    null,
+                    TRUE
+                ),
+                (
+                    (SELECT id FROM sellers WHERE account = %(account)s limit 1),
+                    null,
                     TRUE
                 )
             """)
@@ -442,6 +453,7 @@ class SellerDao:
     """
     def update_seller_info(self, seller_data, seller_info_data):
         db_cursor = self.db_connection.cursor()
+        print()
 
         try:
             # 트랜잭션 시작
@@ -462,7 +474,8 @@ class SellerDao:
                 cs_phone_number = %(cs_phone_number)s,
                 site_url = %(site_url)s,
                 instagram_account = %(instagram_account)s,
-                cs_kakao_account = %(cs_kakao_account)s
+                cs_kakao_account = %(cs_kakao_account)s,
+                cs_yellow_account = %(cs_yellow_account)s
                 WHERE accounts_id = %(accounts_id)s
             """)
             db_cursor.execute(update_sellers, seller_data)
@@ -504,6 +517,7 @@ class SellerDao:
     셀러 담당자 UPDATE 메소드
     """
     def update_seller_representative(self, seller_representative_data):
+        print('seller_representative_data @dao', seller_representative_data)
         db_cursor = self.db_connection.cursor()
         try:
             # 셀러 담당자 테이블 SELECT
@@ -522,39 +536,19 @@ class SellerDao:
                 sellers_id = (SELECT id FROM sellers WHERE accounts_id = %(accounts_id)s),
                 name = %(name)s,
                 mobile_number = %(mobile_number)s,
-                email = %(email)s,
-                is_used = %(is_used)s
+                email = %(email)s
                 WHERE id = %(id)s
             """)
 
-            # 셀러 담당자 테이블 INSERT
-            insert_seller_representative = ("""
-                INSERT INTO seller_representative (
-                    sellers_id,
-                    name,
-                    mobile_number,
-                    email,
-                    is_used
-                ) VALUES (
-                    (SELECT id FROM sellers WHERE accounts_id = %(accounts_id)s),
-                    %(name)s,
-                    %(mobile_number)s,
-                    %(email)s,
-                    %(is_used)s
-                )
-            """)
 
-            # 셀러 담당자 테이블에 id가 있으면 UPDATE 없으면 INSERT
+            # 셀러 담당자 테이블에 id를 찾아서 UPDATE
             for i in range(len(seller_representative_data)):
-                if 'id' in seller_representative_data[i].keys():
-                    db_cursor.execute(search_seller_representative, seller_representative_data[i])
-                    seller_id = db_cursor.fetchone()[0]
-                    if seller_id == seller_representative_data[i]['id']:
-                        db_cursor.execute(update_seller_representative, seller_representative_data[i])
+                db_cursor.execute(search_seller_representative, seller_representative_data[i])
+                seller_id = db_cursor.fetchone()[0]
+                if seller_id == seller_representative_data[i]['id']:
+                    db_cursor.execute(update_seller_representative, seller_representative_data[i])
                         
-                else:
-                    db_cursor.execute(insert_seller_representative, seller_representative_data[i])
-
+                
             self.db_connection.commit() 
             db_cursor.close()
         
