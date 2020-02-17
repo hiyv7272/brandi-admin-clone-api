@@ -219,8 +219,8 @@ class SellerService():
             validation          = self.validate(seller_data)
             validation          = self.validate(seller_info_data)
 
-            for i in range(len(seller_representative_data)):
-                validation          = self.validate(seller_representative_data[i])
+            # for i in range(len(seller_representative_data)):
+            #     validation          = self.validate(seller_representative_data[i])
                 
             update_seller_info              = self.seller_dao.update_seller_info(seller_data, seller_info_data)
             update_seller_representative    = self.seller_dao.update_seller_representative(seller_representative_data)
