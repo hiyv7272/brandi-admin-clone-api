@@ -76,37 +76,38 @@ class ProductDao:
     # 기본 옵션 테이블 삽입 함수
     def make_basic_options(self, db_cursor, request_json, option_info_id):
 
-        option_info_json = request_json['option_info']
+        if 'option_info' in request_json:
+            option_info_json = request_json['option_info']
 
-        for option_list in option_info_json:
+            for option_list in option_info_json:
 
-            basic_options_data = {
-                'option_info_id': option_info_id,
-                'basic_options_colors_id' : option_list['basic_options_colors_id'],
-                'basic_options_sizes_id' : option_list['basic_options_sizes_id'],
-                'is_stock_managed': option_list['is_stock_managed'],
-                'stock_volume': option_list['stock_volume'],
-            }
-        
-            basic_options_query = ("""
-                INSERT INTO basic_options (
-                    option_info_id,
-                    basic_options_colors_id,
-                    basic_options_sizes_id,
-                    is_stock_managed,
-                    stock_volume,
-                    is_used
-                ) VALUES (
-                    (SELECT id FROM option_info WHERE id=%(option_info_id)s limit 1),
-                    (SELECT id FROM basic_options_colors WHERE name=%(basic_options_colors_id)s limit 1),
-                    (SELECT id FROM basic_options_sizes WHERE name=%(basic_options_sizes_id)s limit 1),
-                    %(is_stock_managed)s,
-                    %(stock_volume)s,
-                    TRUE
-                )
-            """)
+                basic_options_data = {
+                    'option_info_id': option_info_id,
+                    'basic_options_colors_id' : option_list['basic_options_colors_id'],
+                    'basic_options_sizes_id' : option_list['basic_options_sizes_id'],
+                    'is_stock_managed': option_list['is_stock_managed'],
+                    'stock_volume': option_list['stock_volume'],
+                }
+            
+                basic_options_query = ("""
+                    INSERT INTO basic_options (
+                        option_info_id,
+                        basic_options_colors_id,
+                        basic_options_sizes_id,
+                        is_stock_managed,
+                        stock_volume,
+                        is_used
+                    ) VALUES (
+                        (SELECT id FROM option_info WHERE id=%(option_info_id)s limit 1),
+                        (SELECT id FROM basic_options_colors WHERE name=%(basic_options_colors_id)s limit 1),
+                        (SELECT id FROM basic_options_sizes WHERE name=%(basic_options_sizes_id)s limit 1),
+                        %(is_stock_managed)s,
+                        %(stock_volume)s,
+                        TRUE
+                    )
+                """)
 
-            db_cursor.execute(basic_options_query, basic_options_data)
+                db_cursor.execute(basic_options_query, basic_options_data)
 
         return
 
