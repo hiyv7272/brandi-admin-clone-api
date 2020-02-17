@@ -86,3 +86,21 @@ class ProductView:
         def register_product():
             product_service.register_product(request)
             return Response(status=200)
+
+        """
+        상품코드로 상세정보 조회하는 엔드포인트
+        ----------
+        request : 상품코드 쿼리 스트링
+        -------
+        return : 상세 상품정보, http 응답코드, 쿼리 스트링으로 product_code가 오지 않으면 400에러 리턴
+        """
+        @app.route("/product_detail", methods=['GET'])
+        def product_detail():
+            print('start')
+            print(request)
+            product_code = request.args.get('product_code')
+            if product_code is None:
+                abort(400, description="NO QUERY STRING") 
+
+            product=product_service.product_detail(product_code)
+            return jsonify(product)

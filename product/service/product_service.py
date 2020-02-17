@@ -90,3 +90,6 @@ class ProductService:
 
     def register_product(self, request):
         self.product_dao.register_product_dao(request)
+
+    def product_detail(self, product_code):
+        return self.product_dao.product_detail_dao(product_code)
