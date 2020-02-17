@@ -107,9 +107,20 @@ class SellerDao:
                     sellers_id,
                     mobile_number,
                     is_used
-                ) VALUES (
+                ) VALUES 
+                (
                     (SELECT id FROM sellers WHERE account = %(account)s limit 1),
                     %(mobile_number)s,
+                    TRUE
+                ),
+                (
+                    (SELECT id FROM sellers WHERE account = %(account)s limit 1),
+                    null,
+                    TRUE
+                ),
+                (
+                    (SELECT id FROM sellers WHERE account = %(account)s limit 1),
+                    null,
                     TRUE
                 )
             """)
