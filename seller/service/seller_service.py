@@ -192,7 +192,8 @@ class SellerService():
                 'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
                 'site_url'          : seller_request_data['seller_info']['site_url'],
                 'instagram_account' : seller_request_data['seller_info']['instagram_account'],
-                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account']
+                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
+                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
             }
 
             seller_info_data = {
@@ -210,7 +211,7 @@ class SellerService():
                 'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
                 'refund_info'           : seller_request_data['seller_info']['refund_info']
             }
-            
+
             seller_representative_data = seller_request_data['seller_info']['seller_representative']
 
             for i in range(len(seller_representative_data)):
@@ -218,9 +219,6 @@ class SellerService():
 
             validation          = self.validate(seller_data)
             validation          = self.validate(seller_info_data)
-
-            # for i in range(len(seller_representative_data)):
-            #     validation          = self.validate(seller_representative_data[i])
                 
             update_seller_info              = self.seller_dao.update_seller_info(seller_data, seller_info_data)
             update_seller_representative    = self.seller_dao.update_seller_representative(seller_representative_data)
