@@ -181,3 +181,17 @@ class SellerView:
             seller_info_update  = seller_service.update_seller_info(seller_request_data, g.user_info)
 
             return jsonify({'message':'SUCCESS'}, 200)
+
+
+        @app.route("/seller/list", methods=['GET'])
+        def seller_list():
+            seller_list     = seller_service.seller_list_get(request)
+            seller_count    = seller_service.serller_list_count() 
+
+            return jsonify({
+                'seller_info'   : seller_list,
+                'seller_count'  : seller_count,
+                'limit'         : request.args.get('limit'),
+                'offset'        : request.args.get('offset'),
+                'message'       :'SUCCESS',
+            })

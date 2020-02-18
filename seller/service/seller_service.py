@@ -227,3 +227,55 @@ class SellerService():
         
         except KeyError:
             abort (400, description="INVALID_KEY")
+
+    
+    def seller_list_get(self, request):
+
+        request_param = {}
+        if request.args.get('limit'):
+            request_param['limit'] = int(request.args.get('limit'))
+        else:
+            request_param['limit'] = 10
+        
+        if request.args.get('offset'):
+            request_param['offset'] = int(request.args.get('offset'))
+        else:
+            request_param['offset'] = 0
+
+        if request.args.get('start_date'):
+            request_param['start_date'] = request.args.get('start_date')
+        
+        if request.args.get('end_date'):
+            request_param['end_date'] = request.args.get('end_date')
+        
+        if request.args.get('account'):
+            request_param['account'] = request.args.get('account')
+
+        if request.args.get('name_kr'):
+            request_param['name_kr'] = request.args.get('name_kr')
+
+        if request.args.get('name_en'):
+            request_param['name_en'] = request.args.get('name_en')
+
+        if request.args.get('site_url'):
+            request_param['site_url'] = request.args.get('site_url')
+        
+        if request.args.get('representative_name'):
+            request_param['representative_name'] = request.args.get('representative_name')
+        
+        if request.args.get('mobile_number'):
+            request_param['mobile_number'] = request.args.get('mobile_number')
+
+        if request.args.get('email'):
+            request_param['email'] = request.args.get('email')
+        
+    
+        seller_list_get = self.seller_dao.search_seller_list(request_param)
+
+        return seller_list_get
+
+    def serller_list_count(self):
+
+        seller_count_get = self.seller_dao.search_seller_count()
+
+        return seller_count_get
