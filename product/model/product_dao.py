@@ -290,29 +290,29 @@ class ProductDao:
             self.execute_query(db_cursor, "START TRANSACTION")
             self.execute_query(db_cursor, "SET AUTOCOMMIT=0")
 
-            # 상품고시 테이블 삽입
+            # 1. 상품고시 테이블 삽입
             last_info_id = self.make_information_notices(db_cursor, request_json)
             
-            # 옵션정보 테이블 삽입
+            # 2. 옵션정보 테이블 삽입
             last_option_info_id, option_type = self.make_options_info(db_cursor, request_json)
 
-            # 기본옵션 테이블 삽입
+            # 3. 기본옵션 테이블 삽입
             self.make_basic_options(db_cursor, request_json, last_option_info_id, option_type)
             
-            # 상품 개수 테이블 카운트 증가
+            # 4. 상품 개수 테이블 카운트 증가
             self.increase_product_counts(db_cursor, request_json, next_product_id)
 
-            # 상품 테이블 삽입
+            # 5. 상품 테이블 삽입
             product_info = {
-                'next_product_id' : next_product_id,
-                'product_number'  : next_product_id,
-                'serial_number'   : next_serial_number,
+                'next_product_id'        : next_product_id,
+                'product_number'         : next_product_id,
+                'serial_number'          : next_serial_number,
                 'information_notices_id' : last_info_id,
-                'option_info_id' : last_option_info_id
+                'option_info_id'         : last_option_info_id
             }
             self.make_products(db_cursor, request_json, product_info)
 
-            # 상품 태그 테이블 삽입
+            # 6. 상품 태그 테이블 삽입
             self.make_product_tags(db_cursor, request_json, next_product_id)
 
             # 트랜젝션 종료
@@ -431,17 +431,22 @@ class ProductDao:
         if seller_attribute is None:
             products_query = ("""
                 SELECT 
-                    created_at,
-                    main_image,
-                    name,
-                    serial_number,
-                    product_number,
-                    price,
-                    discounted_price,
-                    is_sold,
-                    is_displayed,
-                    discount_price
-                    FROM products
+                    products.created_at,
+                    products.main_image,
+                    products.name,
+                    products.serial_number,
+                    products.product_number,
+                    products.price,
+                    products.discounted_price,
+                    products.is_sold,
+                    products.is_displayed,
+                    products.discount_price,
+                    sq.name_kr,
+                    sq.name AS seller_attr
+                    FROM (products 
+                INNER JOIN (SELECT sellers.accounts_id, sellers.name_kr, sellers.seller_types_id, seller_types.name FROM sellers INNER JOIN seller_types 
+                ON sellers.seller_types_id=seller_types.id ) AS sq
+                ON products.creator_id=sq.accounts_id)
             """)
         else:
             products_query = ("""
@@ -455,12 +460,14 @@ class ProductDao:
                     products.discounted_price,
                     products.is_sold,
                     products.is_displayed,
-                    products.discount_price
-                FROM products 
-                INNER JOIN (SELECT sellers.accounts_id FROM sellers INNER JOIN seller_types 
+                    products.discount_price,
+                    sq.name_kr,
+                    sq.name AS seller_attr
+                FROM (products 
+                INNER JOIN (SELECT sellers.accounts_id, sellers.name_kr, sellers.seller_types_id, seller_types.name FROM sellers INNER JOIN seller_types 
                 ON sellers.seller_types_id=seller_types.id 
                 WHERE seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute)s)) AS sq
-                ON products.creator_id=sq.accounts_id
+                ON products.creator_id=sq.accounts_id)
             """)
         
         return products_query
@@ -493,7 +500,7 @@ class ProductDao:
 
         seller_name_query = 'AND ' if where_added else 'WHERE '
         if seller_name:
-            products_param['seller_name']=seller_name
+            products_param['seller_name'] = seller_name
             seller_name_query += '(creator_id=(select accounts_id from sellers where name_kr=%(seller_name)s)) '
             where_added = True
             products_query += seller_name_query
@@ -507,11 +514,13 @@ class ProductDao:
         products_query += limit_offset
         return products_query
 
+    # 페이지네이션 셀러 속성 쿼리 추가 함수
     def check_pagination_seller_attribute(self, products_query, products_param, request):
         seller_attribute = request.args.get('seller_attribute')
         if seller_attribute is not None:
             products_param['seller_attribute'] = seller_attribute
 
+    # 상품명 쿼리 추가 함수
     def check_product_name(self, products_query, products_param, request, where_added):
         product_name = request.args.get('product_name')
         # print("seller_name=",end=""), print(seller_name)
@@ -525,7 +534,85 @@ class ProductDao:
             where_added = True
             products_query += product_name_query
 
-        print("For product name condition, products_query=",end=""), print(products_query)
+        # print("For product name condition, products_query=",end=""), print(products_query)
+        return products_query, where_added
+
+    # 상품번호 쿼리 추가 함수
+    def check_product_number(self, products_query, products_param, request, where_added):
+        product_number = request.args.get('product_number')
+        product_number_query = 'AND ' if where_added else 'WHERE '
+        if product_number:
+            products_param['product_number'] = int(number)
+            product_number_query += '(product_number=%(product_number)s) '
+            where_added = True
+            products_query += product_number_query
+
+        # print("For product number condition, products_query=",end=""), print(products_query)
+        return products_query, where_added
+
+    # 상품코드 쿼리 추가 함수
+    def check_product_serial_number(self, products_query, products_param, request, where_added):
+        product_serial_number = request.args.get('serial_number')
+        product_serial_query = 'AND ' if where_added else 'WHERE '
+        if product_serial_number:
+            products_param['serial_number'] = product_serial_number
+            product_serial_query += '(serial_number=%(serial_number)s) '
+            where_added = True
+            products_query += product_serial_query
+
+        return products_query, where_added
+
+    # 판매여부 쿼리 추가 함수
+    def check_is_selling(self, products_query, products_param, request, where_added):
+        s_is_sold = request.args.get('is_sold')
+        # print("s_is_sold=",end=""), print(s_is_sold)
+        # print("type s_is_sold=",end=""), print(type(s_is_sold))
+        is_sold_query = 'AND ' if where_added else 'WHERE '
+        if s_is_sold:
+            b_is_sold = True if s_is_sold == 'true' else False
+            if b_is_sold:
+                is_sold_query += '(is_sold=TRUE) '
+            else:
+                is_sold_query += '(is_sold=FALSE) '
+        else:
+            is_sold_query += '(is_sold=TRUE or is_sold=FALSE) '
+
+        products_query += is_sold_query
+        where_added = True
+        return products_query, where_added
+
+    # 진열여부 쿼리 추가 함수
+    def check_is_displayed(self, products_query, products_param, request, where_added):
+        s_is_displayed = request.args.get('is_displayed')
+        is_displayed_query = 'AND ' if where_added else 'WHERE '
+        if s_is_displayed:
+            b_is_displayed = True if s_is_displayed == 'true' else False
+            if b_is_displayed:
+                is_displayed_query += '(is_displayed=TRUE) '
+            else:
+                is_displayed_query += '(is_displayed=FALSE) '
+        else:
+            is_displayed_query += '(is_displayed=TRUE or is_displayed=FALSE) '
+
+        products_query += is_displayed_query
+        where_added = True
+        return products_query, where_added
+
+    # 할인여부 쿼리 추가 함수
+    def check_is_discounted(self, products_query, products_param, request, where_added):
+        s_is_discounted = request.args.get('is_discounted')
+        is_displayed_query = 'AND ' if where_added else 'WHERE '
+        if s_is_discounted:
+            b_is_discounted = True if s_is_discounted == 'true' else False
+            if b_is_discounted:
+                is_displayed_query += '(discount_rate is not null) '
+            else:
+                is_displayed_query += '(discount_rate is null) '
+        else:
+            is_displayed_query += '(discount_rate is not null or discount_rate is null) '
+
+        products_query += is_displayed_query
+        where_added = True
         return products_query, where_added
 
     # 상품 페이지네이션 함수
@@ -545,7 +632,7 @@ class ProductDao:
             }
             products_query = self.get_product_pagination_query(request)
 
-            # 1-1. 쎌러 속성 조건
+            # 1-1. 셀러 속성 조건
             self.check_pagination_seller_attribute(products_query, products_param, request)
 
             # 1-1. 조회 기간 조건
@@ -558,15 +645,20 @@ class ProductDao:
             products_query, where_added = self.check_product_name(products_query, products_param, request, where_added)
 
             # 1-4. 상품번호
+            products_query, where_added = self.check_product_number(products_query, products_param, request, where_added)
 
             # 1-5. 상품코드
+            products_query, where_added = self.check_product_serial_number(products_query, products_param, request, where_added)
 
             # 1-6. 판매여부
+            products_query, where_added = self.check_is_selling(products_query, products_param, request, where_added)
 
             # 1-7. 진열여부
+            products_query, where_added = self.check_is_displayed(products_query, products_param, request, where_added)
 
             # 1-8. 할인여부
-
+            products_query, where_added = self.check_is_discounted(products_query, products_param, request, where_added)
+    
             # 1-9. 오프셋 조건 : 반환하는 개수를 구하기 위해 limit, offset 설정
             products_query = self.add_limit_offset(products_query)
 
@@ -588,6 +680,8 @@ class ProductDao:
                 'is_sold'           : row['is_sold'],
                 'is_displayed'      : row['is_displayed'],
                 'is_discounted'     : True if row['discount_price'] is not None else False,
+                'seller_name'       : row['name_kr'],
+                'seller_type'       : row['seller_attr']
             } for row in rows]
 
             ret_products_data = {
