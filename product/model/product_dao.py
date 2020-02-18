@@ -279,6 +279,7 @@ class ProductDao:
     def register_product_dao(self, request):
         try:
             request_json = request.json
+            print("request data=", end=""), print(request_json) # for debug
             # db_cursor = self.db.cursor(buffered=True, dictionary=True)
             db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
 
@@ -344,6 +345,9 @@ class ProductDao:
         # 상품코드에 해당하는 상품이 없으면 에러리턴
         if product['COUNT(*)'] < 1:
             abort(400, description="NO PRODUCT")
+        
+        # Front에 불필요한 COUNT정보 삭제
+        del product['COUNT(*)']
 
         return product
 
@@ -421,21 +425,44 @@ class ProductDao:
             db_cursor.close()
 
     # 기본 페이지네이션 쿼리문 반환 함수
-    def get_product_pagination_query(self):
-        products_query = ("""
-            SELECT 
-                created_at,
-                main_image,
-                name,
-                serial_number,
-                product_number,
-                price,
-                discounted_price,
-                is_sold,
-                is_displayed,
-                discount_price
-                FROM products
-        """)
+    def get_product_pagination_query(self, request):
+        
+        seller_attribute = request.args.get('seller_attribute')
+        if seller_attribute is None:
+            products_query = ("""
+                SELECT 
+                    created_at,
+                    main_image,
+                    name,
+                    serial_number,
+                    product_number,
+                    price,
+                    discounted_price,
+                    is_sold,
+                    is_displayed,
+                    discount_price
+                    FROM products
+            """)
+        else:
+            products_query = ("""
+                SELECT
+                    products.created_at,
+                    products.main_image,
+                    products.name,
+                    products.serial_number,
+                    products.product_number,
+                    products.price,
+                    products.discounted_price,
+                    products.is_sold,
+                    products.is_displayed,
+                    products.discount_price
+                FROM products 
+                INNER JOIN (SELECT sellers.accounts_id FROM sellers INNER JOIN seller_types 
+                ON sellers.seller_types_id=seller_types.id 
+                WHERE seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute)s)) AS sq
+                ON products.creator_id=sq.accounts_id
+            """)
+        
         return products_query
 
     # 페이지네이션 날짜 조건 쿼리 함수
@@ -480,6 +507,27 @@ class ProductDao:
         products_query += limit_offset
         return products_query
 
+    def check_pagination_seller_attribute(self, products_query, products_param, request):
+        seller_attribute = request.args.get('seller_attribute')
+        if seller_attribute is not None:
+            products_param['seller_attribute'] = seller_attribute
+
+    def check_product_name(self, products_query, products_param, request, where_added):
+        product_name = request.args.get('product_name')
+        # print("seller_name=",end=""), print(seller_name)
+        # print("seller_name type=",end=""), print(type(seller_name))
+
+        product_name_query = 'AND ' if where_added else 'WHERE '
+        if product_name:
+            # products_param['product_name'] = product_name
+            products_param['product_name'] = '%{}%'.format(product_name)
+            product_name_query += "(name LIKE %(product_name)s) "
+            where_added = True
+            products_query += product_name_query
+
+        print("For product name condition, products_query=",end=""), print(products_query)
+        return products_query, where_added
+
     # 상품 페이지네이션 함수
     def product_pagination_dao(self, request):
         try:
@@ -495,7 +543,10 @@ class ProductDao:
                 'limit':limit,
                 'offset':offset,
             }
-            products_query = self.get_product_pagination_query()
+            products_query = self.get_product_pagination_query(request)
+
+            # 1-1. 쎌러 속성 조건
+            self.check_pagination_seller_attribute(products_query, products_param, request)
 
             # 1-1. 조회 기간 조건
             products_query, where_added = self.check_pagination_date(products_query, products_param, request, where_added)
@@ -503,14 +554,27 @@ class ProductDao:
             # 1-2. 셀러명 조건
             products_query, where_added = self.check_pagination_seller(products_query, products_param, request, where_added)
 
-            # 1-3. 오프셋 조건 : 반환하는 개수를 구하기 위해 limit, offset 설정
+            # 1-3. 상품명
+            products_query, where_added = self.check_product_name(products_query, products_param, request, where_added)
+
+            # 1-4. 상품번호
+
+            # 1-5. 상품코드
+
+            # 1-6. 판매여부
+
+            # 1-7. 진열여부
+
+            # 1-8. 할인여부
+
+            # 1-9. 오프셋 조건 : 반환하는 개수를 구하기 위해 limit, offset 설정
             products_query = self.add_limit_offset(products_query)
 
             # 2. 종합된 쿼리 실행
             print("final total query=",end=""), print(products_query)
             db_cursor.execute(products_query, products_param)
             rows = db_cursor.fetchall()
-            
+
             # 3. 상품 리스트 리턴
             products_data = [
             {
