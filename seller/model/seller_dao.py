@@ -1,6 +1,7 @@
 import mysql.connector
+import traceback
 
-from mysql.connector.errors import Error
+from mysql.connector.errors import Error 
 from mysql.connector.cursor import MySQLCursor
 from flask                  import abort
 
@@ -573,4 +574,127 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            abort(400, description="INVAILD_DATA")
+
+    
+    def search_seller_list(self, request_param):
+        try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+            seller_list = []
+
+            select_seller_info = ("""
+                SELECT
+                a.id,
+                a.account,
+                a.name_kr,
+                a.name_en,
+                a.site_url,
+                a.seller_status_id,
+                a.seller_types_id,
+                ANY_VALUE(b.name),
+                ANY_VALUE(b.mobile_number),
+                ANY_VALUE(b.email)
+                FROM sellers AS a
+                LEFT JOIN seller_representative AS b
+                ON a.id = b.sellers_id
+                WHERE 1=1
+            """)
+
+            if request_param['start_date'] and request_param['end_date']:
+                start_date = request_param['start_date']
+                end_date = request_param['end_date']
+                select_seller_info += ' AND a.created_at BETWEEN {} AND {}'.format(start_date, end_date)  
+
+            if 'account' in request_param:
+                account = "'%" + str(request_param['account']) + "%'"
+                select_seller_info += ' AND a.account like {}'.format(account)
+            else:None
+            
+            if 'name_kr' in request_param:
+                name_kr = "'%" + str(request_param['name_kr']) + "%'"
+                select_seller_info += ' AND a.name_kr like {}'.format(name_kr)
+            else:None
+            
+            if 'name_en' in request_param:
+                name_en = "'%" + str(request_param['name_en']) + "%'"
+                select_seller_info += ' AND a.name_en like {}'.format(name_en)
+            else:None
+            
+            if 'representative_name' in request_param:
+                representative_name = "'%" + str(request_param['representative_name']) + "%'"
+                select_seller_info += ' AND a.representative_name like {}'.format(representative_name)
+            else:None
+
+            if 'mobile_number' in request_param:
+                mobile_number = "'%" + str(request_param['mobile_number']) + "%'"
+                select_seller_info += ' AND a.mobile_number like {}'.format(mobile_number)
+            else:None
+
+            if 'email' in request_param:
+                email = "'%" + str(request_param['email']) + "%'"
+                select_seller_info += ' AND a.email like {}'.format(email)
+            else:None
+
+            if 'limit' and 'offset' in request_param:
+                select_seller_info      += '    GROUP BY a.id limit %(limit)s' + ' offset ' + '%(offset)s'
+            else:None
+
+            db_cursor.execute(select_seller_info, request_param)
+            seller_list_data = db_cursor.fetchall()
+
+            for row in seller_list_data:             
+                seller_data = {
+                    'id'                    : row['id'],
+                    'account'               : row['account'],
+                    'name_kr'               : row['name_kr'],
+                    'name_en'               : row['name_en'],
+                    'site_url'              : row['site_url'],
+                    'seller_status_id'      : row['seller_status_id'],
+                    'seller_types_id'       : row['seller_types_id'],
+                    'representative_name'   : row['ANY_VALUE(b.name)'],
+                    'mobile_number'         : row['ANY_VALUE(b.mobile_number)'],
+                    'email'                 : row['ANY_VALUE(b.email)'],
+                    'product_count'         : ''
+                }
+                seller_list.append(seller_data)
+
+            count_seller_product = ("""
+                SELECT 
+                COUNT(creator_id)
+                FROM products
+                WHERE creator_id = %(id)s
+            """)
+
+            for i in range(len(seller_list)):
+                creator_id=seller_list[i]['id']
+                db_cursor.execute(count_seller_product, seller_list[i])
+                product_count = db_cursor.fetchone()['COUNT(creator_id)']
+                seller_list[i]['product_count'] = product_count
+
+            return seller_list
+            db_cursor.close()
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
+            traceback.print_exc()
+            abort(400, description="INVAILD_DATA")
+
+    def search_seller_count(self):
+        try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+
+            count_seller = ("""
+                SELECT
+                COUNT(id)
+                FROM sellers
+            """)
+            db_cursor.execute(count_seller)
+            seller_count = db_cursor.fetchone()['COUNT(id)']
+            print('seller_count', seller_count)
+
+            return seller_count
+            
+        except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
