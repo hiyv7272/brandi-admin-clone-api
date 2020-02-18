@@ -52,7 +52,6 @@ class ProductDao:
 
     # 상품 옵션 테이블 삽입 함수
     def make_options_info(self, db_cursor, request_json):
-        print("here")
         option_info_data = {}
         option_info_query = ("""
             INSERT INTO option_info (
@@ -70,45 +69,61 @@ class ProductDao:
             option_info_data['option_types_id'] = self.BASIC_OPTION
 
         db_cursor.execute(option_info_query, option_info_data)
-
-        return db_cursor.lastrowid
+        return db_cursor.lastrowid, option_info_data['option_types_id']
 
     # 기본 옵션 테이블 삽입 함수
-    def make_basic_options(self, db_cursor, request_json, option_info_id):
-
+    def make_basic_options(self, db_cursor, request_json, option_info_id, option_type):
         if 'option_info' in request_json:
             option_info_json = request_json['option_info']
-
-            for option_list in option_info_json:
-
-                basic_options_data = {
-                    'option_info_id': option_info_id,
-                    'basic_options_colors_id' : option_list['basic_options_colors_id'],
-                    'basic_options_sizes_id' : option_list['basic_options_sizes_id'],
-                    'is_stock_managed': option_list['is_stock_managed'],
-                    'stock_volume': option_list['stock_volume'],
+            # 옵션타입에 따라 테이블에 삽입
+            if option_type == self.BASIC_OPTION:
+                for option_list in option_info_json:
+                    basic_options_data = {
+                        'option_info_id': option_info_id,
+                        'basic_options_colors_id' : option_list['basic_options_colors_id'],
+                        'basic_options_sizes_id' : option_list['basic_options_sizes_id'],
+                        'is_stock_managed': option_list['is_stock_managed'],
+                        'stock_volume': option_list['stock_volume'],
+                    }
+                
+                    basic_options_query = ("""
+                        INSERT INTO basic_options (
+                            option_info_id,
+                            basic_options_colors_id,
+                            basic_options_sizes_id,
+                            is_stock_managed,
+                            stock_volume,
+                            is_used
+                        ) VALUES (
+                            (SELECT id FROM option_info WHERE id=%(option_info_id)s limit 1),
+                            (SELECT id FROM basic_options_colors WHERE name=%(basic_options_colors_id)s limit 1),
+                            (SELECT id FROM basic_options_sizes WHERE name=%(basic_options_sizes_id)s limit 1),
+                            %(is_stock_managed)s,
+                            %(stock_volume)s,
+                            TRUE
+                        )
+                    """)
+                    db_cursor.execute(basic_options_query, basic_options_data)
+            elif option_type == self.NO_OPTION:
+                no_option_data = {
+                    'option_info_id'   : option_info_id,
+                    'is_stock_managed' : option_info_json['is_stock_managed'],
+                    'stock_volume'     : option_info_json['stock_volume']
                 }
-            
-                basic_options_query = ("""
-                    INSERT INTO basic_options (
+                no_option_query = ("""
+                    INSERT INTO no_option (
                         option_info_id,
-                        basic_options_colors_id,
-                        basic_options_sizes_id,
                         is_stock_managed,
                         stock_volume,
                         is_used
                     ) VALUES (
                         (SELECT id FROM option_info WHERE id=%(option_info_id)s limit 1),
-                        (SELECT id FROM basic_options_colors WHERE name=%(basic_options_colors_id)s limit 1),
-                        (SELECT id FROM basic_options_sizes WHERE name=%(basic_options_sizes_id)s limit 1),
                         %(is_stock_managed)s,
                         %(stock_volume)s,
                         TRUE
                     )
                 """)
-
-                db_cursor.execute(basic_options_query, basic_options_data)
-
+                db_cursor.execute(no_option_query, no_option_data)
         return
 
     # 상품 개수 테이블 증가 함수
@@ -116,7 +131,7 @@ class ProductDao:
         products_counts_data = {
             'id' : next_product_id
         }
-        products_counts_query = "INSERT INTO products_counts (id) VALUES(%(id)s)"
+        products_counts_query = "INSERT INTO products_counts (id, is_used) VALUES(%(id)s, TRUE)"
         db_cursor.execute(products_counts_query, products_counts_data)
 
         return
@@ -276,13 +291,13 @@ class ProductDao:
 
             # 상품고시 테이블 삽입
             last_info_id = self.make_information_notices(db_cursor, request_json)
-
+            
             # 옵션정보 테이블 삽입
-            last_option_info_id = self.make_options_info(db_cursor, request_json)
+            last_option_info_id, option_type = self.make_options_info(db_cursor, request_json)
 
             # 기본옵션 테이블 삽입
-            self.make_basic_options(db_cursor, request_json, last_option_info_id)
-
+            self.make_basic_options(db_cursor, request_json, last_option_info_id, option_type)
+            
             # 상품 개수 테이블 카운트 증가
             self.increase_product_counts(db_cursor, request_json, next_product_id)
 
@@ -317,6 +332,7 @@ class ProductDao:
             # print("finally cursor close")
             db_cursor.close()
 
+    # 상세정보 반환 함수
     def get_product_detail(self, db_cursor, product_code):
         product_detail_data = {
             'serial_number' : product_code
@@ -328,7 +344,6 @@ class ProductDao:
         # 상품코드에 해당하는 상품이 없으면 에러리턴
         if product['COUNT(*)'] < 1:
             abort(400, description="NO PRODUCT")
-        # print('product=',end=''),print(product)
 
         return product
 
@@ -396,6 +411,134 @@ class ProductDao:
             print(str(e))
             abort(400, description="INVAILD_KEY")
 
+        except mysql.connector.Error as error:
+            # 에러시 롤백
+            print("Failed to update record to database rollback: {}".format(error))
+            db_cursor.rollback()
+
+        finally:
+            # print("finally cursor close")
+            db_cursor.close()
+
+    # 기본 페이지네이션 쿼리문 반환 함수
+    def get_product_pagination_query(self):
+        products_query = ("""
+            SELECT 
+                created_at,
+                main_image,
+                name,
+                serial_number,
+                product_number,
+                price,
+                discounted_price,
+                is_sold,
+                is_displayed,
+                discount_price
+                FROM products
+        """)
+        return products_query
+
+    # 페이지네이션 날짜 조건 쿼리 함수
+    def check_pagination_date(self, products_query, products_param, request, where_added):
+        start_date = request.args.get('start_date')
+        # print("start_date=",end=""), print(start_date)
+        # print("start_date type=",end=""), print(type(start_date))
+
+        end_date = request.args.get('end_date')
+        # print("end_date=",end=""), print(end_date)
+        # print("end_date type=",end=""), print(type(end_date))       
+
+        if start_date is not None and end_date is not None:
+            products_param['start_date'] = start_date
+            products_param['end_date'] = end_date
+            where_added = True
+            products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
+
+        # print("in pagination_date,  products_query=",end=""), print(products_query)
+
+        return products_query, where_added
+
+    # 페이지네이션 셀러 조건 쿼리 함수, 서브쿼리로 accounts_id를 선택후 상품의 등록자 조건으로 걸어줌
+    def check_pagination_seller(self, products_query, products_param, request, where_added):
+        seller_name = request.args.get('seller_name')
+        # print("seller_name=",end=""), print(seller_name)
+        # print("seller_name type=",end=""), print(type(seller_name))
+
+        seller_name_query = 'AND ' if where_added else 'WHERE '
+        if seller_name:
+            products_param['seller_name']=seller_name
+            seller_name_query += '(creator_id=(select accounts_id from sellers where name_kr=%(seller_name)s)) '
+            where_added = True
+            products_query += seller_name_query
+
+        # print("For seller_name condition, products_query=",end=""), print(products_query)
+        return products_query, where_added
+
+    # 페이지네이션 limit, offset 지정 함수
+    def add_limit_offset(self, products_query):
+        limit_offset = "LIMIT %(limit)s OFFSET %(offset)s"
+        products_query += limit_offset
+        return products_query
+
+    # 상품 페이지네이션 함수
+    def product_pagination_dao(self, request):
+        try:
+            print("pagination_dao start")
+            limit = int(request.args.get('limit', 10))
+            offset = (int(request.args.get('offset', 1))-1)*limit
+
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+
+            # 1. 동적 쿼리문 생성
+            where_added = False
+            products_param = {
+                'limit':limit,
+                'offset':offset,
+            }
+            products_query = self.get_product_pagination_query()
+
+            # 1-1. 조회 기간 조건
+            products_query, where_added = self.check_pagination_date(products_query, products_param, request, where_added)
+
+            # 1-2. 셀러명 조건
+            products_query, where_added = self.check_pagination_seller(products_query, products_param, request, where_added)
+
+            # 1-3. 오프셋 조건 : 반환하는 개수를 구하기 위해 limit, offset 설정
+            products_query = self.add_limit_offset(products_query)
+
+            # 2. 종합된 쿼리 실행
+            print("final total query=",end=""), print(products_query)
+            db_cursor.execute(products_query, products_param)
+            rows = db_cursor.fetchall()
+            
+            # 3. 상품 리스트 리턴
+            products_data = [
+            {
+                'created_at'        : row['created_at'],
+                'main_image'        : row['main_image'],
+                'name'              : row['name'],
+                'serial_number'     : row['serial_number'],
+                'product_number'    : row['product_number'],
+                'price'             : row['price'],
+                'discounted_price'  : row['discounted_price'],
+                'is_sold'           : row['is_sold'],
+                'is_displayed'      : row['is_displayed'],
+                'is_discounted'     : True if row['discount_price'] is not None else False,
+            } for row in rows]
+
+            ret_products_data = {
+                'products_count' : len(rows),
+                'products_data' : products_data
+            }
+
+            print("pagination_dao end")
+            return ret_products_data
+
+        except KeyError as e:
+            print("except KeyError")
+            print(str(e))
+            abort(400, description="INVAILD_KEY")
+        
         except mysql.connector.Error as error:
             # 에러시 롤백
             print("Failed to update record to database rollback: {}".format(error))
