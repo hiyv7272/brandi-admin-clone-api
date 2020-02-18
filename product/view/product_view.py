@@ -96,7 +96,6 @@ class ProductView:
         """
         @app.route("/product_detail", methods=['GET'])
         def product_detail():
-            print('start')
             print(request)
             product_code = request.args.get('product_code')
             if product_code is None:
@@ -104,3 +103,16 @@ class ProductView:
 
             product=product_service.product_detail(product_code)
             return jsonify(product)
+
+        """
+        상품 리스트 페이지네이션 API
+        ----------
+        request : query string
+        -------
+        return : 상품리스트, http 응답코드(200, 400)
+        """
+        @app.route("/product_list", methods=['GET'])
+        def product_pagination():
+            # service call
+            products_data = product_service.product_pagination(request)
+            return jsonify(products_data)
