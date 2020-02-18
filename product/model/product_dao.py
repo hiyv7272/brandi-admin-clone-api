@@ -475,37 +475,23 @@ class ProductDao:
     # 페이지네이션 날짜 조건 쿼리 함수
     def check_pagination_date(self, products_query, products_param, request, where_added):
         start_date = request.args.get('start_date')
-        # print("start_date=",end=""), print(start_date)
-        # print("start_date type=",end=""), print(type(start_date))
-
         end_date = request.args.get('end_date')
-        # print("end_date=",end=""), print(end_date)
-        # print("end_date type=",end=""), print(type(end_date))       
-
         if start_date is not None and end_date is not None:
             products_param['start_date'] = start_date
             products_param['end_date'] = end_date
             where_added = True
             products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
-
-        # print("in pagination_date,  products_query=",end=""), print(products_query)
-
         return products_query, where_added
 
     # 페이지네이션 셀러 조건 쿼리 함수, 서브쿼리로 accounts_id를 선택후 상품의 등록자 조건으로 걸어줌
     def check_pagination_seller(self, products_query, products_param, request, where_added):
         seller_name = request.args.get('seller_name')
-        # print("seller_name=",end=""), print(seller_name)
-        # print("seller_name type=",end=""), print(type(seller_name))
-
         seller_name_query = 'AND ' if where_added else 'WHERE '
         if seller_name:
             products_param['seller_name'] = seller_name
             seller_name_query += '(creator_id=(select accounts_id from sellers where name_kr=%(seller_name)s)) '
             where_added = True
             products_query += seller_name_query
-
-        # print("For seller_name condition, products_query=",end=""), print(products_query)
         return products_query, where_added
 
     # 페이지네이션 limit, offset 지정 함수
@@ -523,18 +509,12 @@ class ProductDao:
     # 상품명 쿼리 추가 함수
     def check_product_name(self, products_query, products_param, request, where_added):
         product_name = request.args.get('product_name')
-        # print("seller_name=",end=""), print(seller_name)
-        # print("seller_name type=",end=""), print(type(seller_name))
-
         product_name_query = 'AND ' if where_added else 'WHERE '
         if product_name:
-            # products_param['product_name'] = product_name
             products_param['product_name'] = '%{}%'.format(product_name)
             product_name_query += "(name LIKE %(product_name)s) "
             where_added = True
             products_query += product_name_query
-
-        # print("For product name condition, products_query=",end=""), print(products_query)
         return products_query, where_added
 
     # 상품번호 쿼리 추가 함수
@@ -546,8 +526,6 @@ class ProductDao:
             product_number_query += '(product_number=%(product_number)s) '
             where_added = True
             products_query += product_number_query
-
-        # print("For product number condition, products_query=",end=""), print(products_query)
         return products_query, where_added
 
     # 상품코드 쿼리 추가 함수
@@ -565,8 +543,6 @@ class ProductDao:
     # 판매여부 쿼리 추가 함수
     def check_is_selling(self, products_query, products_param, request, where_added):
         s_is_sold = request.args.get('is_sold')
-        # print("s_is_sold=",end=""), print(s_is_sold)
-        # print("type s_is_sold=",end=""), print(type(s_is_sold))
         is_sold_query = 'AND ' if where_added else 'WHERE '
         if s_is_sold:
             b_is_sold = True if s_is_sold == 'true' else False
@@ -618,7 +594,7 @@ class ProductDao:
     # 상품 페이지네이션 함수
     def product_pagination_dao(self, request):
         try:
-            print("pagination_dao start")
+            # print("pagination_dao start")
             limit = int(request.args.get('limit', 10))
             offset = (int(request.args.get('offset', 1))-1)*limit
 
@@ -663,7 +639,7 @@ class ProductDao:
             products_query = self.add_limit_offset(products_query)
 
             # 2. 종합된 쿼리 실행
-            print("final total query=",end=""), print(products_query)
+            # print("final total query=",end=""), print(products_query)
             db_cursor.execute(products_query, products_param)
             rows = db_cursor.fetchall()
 
@@ -689,7 +665,7 @@ class ProductDao:
                 'products_data' : products_data
             }
 
-            print("pagination_dao end")
+            # print("pagination_dao end")
             return ret_products_data
 
         except KeyError as e:
