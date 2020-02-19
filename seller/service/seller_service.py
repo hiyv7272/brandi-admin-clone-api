@@ -253,6 +253,7 @@ class SellerService():
             request_parameter['start_date'] = request.args.get('start_date')
             request_parameter['end_date'] = request.args.get('end_date')
         else:None
+            
                  
         if request.args.get('account'):
             request_parameter['account'] = request.args.get('account')
@@ -287,7 +288,6 @@ class SellerService():
         try:
             request_parameter = self.request_parameter_validate(request)
 
-            # print('파라미터!!', request_parameter)
             seller_list_get, seller_count_get = self.seller_dao.search_seller_list(request_parameter)
             return seller_list_get, seller_count_get
 
@@ -298,10 +298,59 @@ class SellerService():
             abort (400, description="INVALID_VALUE")
 
     """
-    List 셀러정보를 확인하는 메소드
+    셀러List 셀러정보를 확인하는 메소드
     """
     def seller_info_detail_check(self, user_id):
 
         seller_info_detail_check  = self.seller_dao.get_seller_info_detail(user_id)
             
         return seller_info_detail_check
+
+    """
+    셀러List - 셀러정보를 업데이트하는 메소드
+    """
+    def seller_info_detail_update(self, seller_request_data, user_id):
+        # user_id == sellers_id 셀러테이블의 id(PK)
+        try:
+            seller_data = {
+                'sellers_id'        : user_id,
+                'name_kr'           : seller_request_data['seller_info']['name_kr'],
+                'name_en'           : seller_request_data['seller_info']['name_en'],
+                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
+                'site_url'          : seller_request_data['seller_info']['site_url'],
+                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
+                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
+                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
+            }
+
+            seller_info_data = {
+                'sellers_id'            : user_id,
+                'profile_image'         : seller_request_data['seller_info']['profile_image'],
+                'ceo_name'              : seller_request_data['seller_info']['ceo_name'],
+                'company_name'          : seller_request_data['seller_info']['company_name'],
+                'company_code'          : seller_request_data['seller_info']['company_code'],
+                'company_certi_image'   : seller_request_data['seller_info']['company_certi_image'],
+                'mail_order_code'       : seller_request_data['seller_info']['mail_order_code'],
+                'mail_order_image'      : seller_request_data['seller_info']['mail_order_image'],
+                'bg_image'              : seller_request_data['seller_info']['bg_image'],
+                'single_line_intro'     : seller_request_data['seller_info']['single_line_intro'],
+                'detailed_intro'        : seller_request_data['seller_info']['detailed_intro'],
+                'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
+                'refund_info'           : seller_request_data['seller_info']['refund_info']
+            }
+
+            seller_representative_data = seller_request_data['seller_info']['seller_representative']
+
+            for i in range(len(seller_representative_data)):
+                seller_representative_data[i]['sellers_id'] = user_id
+
+            # validation          = self.validate(seller_data)
+            # validation          = self.validate(seller_info_data)
+                
+            update_seller_info              = self.seller_dao.update_seller_info_detail(seller_data, seller_info_data)
+            update_seller_representative    = self.seller_dao.update_seller_representative_detail(seller_representative_data)
+ 
+            return update_seller_info
+        
+        except KeyError:
+            abort (400, description="INVALID_KEY")
