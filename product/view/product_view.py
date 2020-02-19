@@ -84,7 +84,10 @@ class ProductView:
         """
         @app.route("/product", methods=['POST'])
         def register_product():
-            product_service.register_product(request)
+            if 'product_number' in request.json:
+                product_service.modify_product(request)
+            else:
+                product_service.register_product(request)
             return Response(status=200)
 
         """
@@ -97,7 +100,7 @@ class ProductView:
         @app.route("/product_detail", methods=['GET'])
         def product_detail():
             print(request)
-            product_code = request.args.get('product_code')
+            product_code = request.args.get('serial_code')
             if product_code is None:
                 abort(400, description="NO QUERY STRING") 
 
@@ -114,5 +117,6 @@ class ProductView:
         @app.route("/product_list", methods=['GET'])
         def product_pagination():
             # service call
+            print("product_pagination view start")
             products_data = product_service.product_pagination(request)
             return jsonify(products_data)
