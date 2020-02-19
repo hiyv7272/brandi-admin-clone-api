@@ -252,6 +252,7 @@ class SellerService():
         if request.args.get('start_date') and request.args.get('end_date'):
             request_parameter['start_date'] = request.args.get('start_date')
             request_parameter['end_date'] = request.args.get('end_date')
+        else:None
                  
         if request.args.get('account'):
             request_parameter['account'] = request.args.get('account')

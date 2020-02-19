@@ -712,9 +712,9 @@ class SellerDao:
     list 셀러 정보 SELECT 메소드
     """
     def get_seller_info_detail(self, user_id):
-        db_cursor = self.db_connection.cursor()
         
         try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
             seller_data = {'id': user_id}
             
              # 셀러 정보 SELECT 문
@@ -743,39 +743,42 @@ class SellerDao:
                     b.shopping_info,
                     b.refund_info
                 FROM sellers AS a
-                INNER JOIN sellers_info AS b
+                LEFT JOIN sellers_info AS b
                 ON a.seller_info_id = b.id
                 WHERE a.id = %(id)s limit 1
             """)
             db_cursor.execute(query_get_seller_info, seller_data)
+            get_seller_date = db_cursor.fetchone()
+            print('seller_data @dao', seller_data)
+            print('db_cursor @dao', get_seller_date)
 
-            for row in db_cursor:
-                seller_info = {
-                    'accounts_id' : row[0],
-                    'accounts'    : row[1],
-                    'seller_types_id' : row[2],
-                    'name_kr' : row[3],
-                    'name_en' : row[4],
-                    'cs_phone_number' : row[5],
-                    'site_url' : row[6],
-                    'instagram_account' : row[7],
-                    'cs_kakao_account'  : row[8],
-                    'cs_yellow_account' : row[9],
-                    'profile_image' : row[10],
-                    'ceo_name' : row[11],
-                    'company_name' : row[12],
-                    'company_code' : row[13],
-                    'company_certi_image' : row[14],
-                    'mail_order_code' : row[15],
-                    'mail_order_image' : row[16],
-                    'bg_image' : row[17],
-                    'single_line_intro' : row[18],
-                    'detailed_intro' : row[19],
-                    'shopping_info' : row[20],
-                    'refund_info' : row[21],
-                    'seller_representative' : []
-                }
-            
+            # for row in db_cursor:
+            seller_info = {
+                'accounts_id' : get_seller_date['accounts_id'],
+                'accounts'    : get_seller_date['account'],
+                'seller_types_id' : get_seller_date['seller_types_id'],
+                'name_kr' : get_seller_date['name_kr'],
+                'name_en' : get_seller_date['name_en'],
+                'cs_phone_number' : get_seller_date['cs_phone_number'],
+                'site_url' : get_seller_date['site_url'],
+                'instagram_account' : get_seller_date['instagram_account'],
+                'cs_kakao_account'  : get_seller_date['cs_kakao_account'],
+                'cs_yellow_account' : get_seller_date['cs_yellow_account'],
+                'profile_image' : get_seller_date['profile_image'],
+                'ceo_name' : get_seller_date['ceo_name'],
+                'company_name' : get_seller_date['company_name'],
+                'company_code' : get_seller_date['company_code'],
+                'company_certi_image' : get_seller_date['company_certi_image'],
+                'mail_order_code' : get_seller_date['mail_order_code'],
+                'mail_order_image' : get_seller_date['mail_order_image'],
+                'bg_image' : get_seller_date['bg_image'],
+                'single_line_intro' : get_seller_date['single_line_intro'],
+                'detailed_intro' : get_seller_date['detailed_intro'],
+                'shopping_info' : get_seller_date['shopping_info'],
+                'refund_info' : get_seller_date['refund_info'],
+                'seller_representative' : []
+            }
+            print('seller_info @dao', seller_info)
              # 셀러 담당자 SELECT 문
             query_get_seller_representative = ("""
                 SELECT
@@ -796,12 +799,12 @@ class SellerDao:
 
             for i in range(len(seller_representative_data)):
                 seller_representative = {
-                    'id' : seller_representative_data[i][0],
-                    'sellers_id' : seller_representative_data[i][1],
-                    'name' : seller_representative_data[i][2],
-                    'mobile_number' : seller_representative_data[i][3],
-                    'email' : seller_representative_data[i][4],
-                    'is_used' : seller_representative_data[i][5]
+                    'id' : seller_representative_data[i]['id'],
+                    'sellers_id' : seller_representative_data[i]['sellers_id'],
+                    'name' : seller_representative_data[i]['name'],
+                    'mobile_number' : seller_representative_data[i]['mobile_number'],
+                    'email' : seller_representative_data[i]['email'],
+                    'is_used' : seller_representative_data[i]['is_used']
                 }
                 seller_info['seller_representative'].append(seller_representative)
 
