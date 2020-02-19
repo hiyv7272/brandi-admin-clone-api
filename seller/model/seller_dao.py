@@ -760,8 +760,6 @@ class SellerDao:
             """)
             db_cursor.execute(query_get_seller_info, seller_data)
             get_seller_date = db_cursor.fetchone()
-            print('seller_data @dao', seller_data)
-            print('db_cursor @dao', get_seller_date)
 
             # for row in db_cursor:
             seller_info = {
@@ -789,7 +787,7 @@ class SellerDao:
                 'refund_info' : get_seller_date['refund_info'],
                 'seller_representative' : []
             }
-            print('seller_info @dao', seller_info)
+
              # 셀러 담당자 SELECT 문
             query_get_seller_representative = ("""
                 SELECT
@@ -823,6 +821,114 @@ class SellerDao:
 
             db_cursor.close()
 
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
+            abort(400, description="INVAILD_DATA")
+
+    """
+    셀러list - 셀러정보 UPDATE 메소드
+    """
+    def update_seller_info_detail(self, seller_data, seller_info_data):
+        db_cursor = self.db_connection.cursor()
+
+        try:
+            # 트랜잭션 시작
+            query_start = ("START TRANSACTION")
+            db_cursor.execute(query_start)
+
+            # 자동 커밋 비활성화
+            quert_autocommit_0 = ("SET AUTOCOMMIT=0")
+            db_cursor.execute(quert_autocommit_0)
+
+            # 셀러 테이블 업데이트
+            update_sellers = ("""
+                UPDATE
+                sellers
+                SET
+                name_kr = %(name_kr)s,
+                name_en = %(name_en)s,
+                cs_phone_number = %(cs_phone_number)s,
+                site_url = %(site_url)s,
+                instagram_account = %(instagram_account)s,
+                cs_kakao_account = %(cs_kakao_account)s,
+                cs_yellow_account = %(cs_yellow_account)s
+                WHERE id = %(sellers_id)s
+            """)
+            db_cursor.execute(update_sellers, seller_data)
+
+            # 셀러 정보 테이블 업데이트
+            update_sellers_info = ("""
+                UPDATE
+                sellers_info
+                SET
+                profile_image = %(profile_image)s,
+                ceo_name = %(ceo_name)s,
+                company_name = %(company_name)s,
+                company_code = %(company_code)s,
+                company_certi_image = %(company_certi_image)s,
+                mail_order_code = %(mail_order_code)s,
+                mail_order_image = %(mail_order_image)s,
+                bg_image = %(bg_image)s,
+                single_line_intro = %(single_line_intro)s,
+                detailed_intro = %(detailed_intro)s,
+                shopping_info = %(shopping_info)s,
+                refund_info = %(refund_info)s
+                WHERE id = (SELECT seller_info_id FROM sellers WHERE id = %(sellers_id)s)
+            """)
+            db_cursor.execute(update_sellers_info, seller_info_data)
+
+            self.db_connection.commit()            
+            db_cursor.close()
+        
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
+            query_rollback = ("ROLLBACK")
+            db_cursor.execute(query_rollback)
+            db_cursor.close()
+            abort(400, description="INVAILD_DATA")            
+
+    """
+    셀러list - 셀러담당자 UPDATE 메소드
+    """
+    def update_seller_representative_detail(self, seller_representative_data):
+        db_cursor = self.db_connection.cursor()
+        try:
+            # 셀러 담당자 테이블 SELECT
+            search_seller_representative = ("""
+                SELECT
+                id
+                FROM seller_representative
+                WHERE id = %(id)s
+            """)
+
+            # 셀러 담당자 테이블 UPDATE
+            update_seller_representative = ("""
+                UPDATE
+                seller_representative
+                SET
+                sellers_id = %(sellers_id)s,
+                name = %(name)s,
+                mobile_number = %(mobile_number)s,
+                email = %(email)s
+                WHERE id = %(id)s
+            """)
+
+
+            # 셀러 담당자 테이블에 id를 찾아서 UPDATE
+            for i in range(len(seller_representative_data)):
+                db_cursor.execute(search_seller_representative, seller_representative_data[i])
+                seller_id = db_cursor.fetchone()[0]
+                if seller_id == seller_representative_data[i]['id']:
+                    db_cursor.execute(update_seller_representative, seller_representative_data[i])
+                        
+                
+            self.db_connection.commit() 
+            db_cursor.close()
+        
         except KeyError:
             abort(400, description="INVAILD_KEY")
 

@@ -215,3 +215,19 @@ class SellerView:
             return jsonify({
                 'seller_info' : seller_info_detail
             })
+
+        """
+        리스트 - 셀러정보 update 엔드포인트
+        -------------------
+        request : query string, application/json, 셀러정보
+        -------------------
+        return : http 응답코드 (200, 400, 401), 셀러에 따른 셀러정보
+        """
+        @app.route("/seller/list-info-update/<int:user_id>", methods=['POST'])
+        def seller_info_detail_update(user_id):
+            seller_request_data = request.json
+            print(user_id)
+            print(seller_request_data)
+            seller_info_detail = seller_service.seller_info_detail_update(seller_request_data, user_id)
+
+            return jsonify({'message':'SUCCESS'}, 200)
