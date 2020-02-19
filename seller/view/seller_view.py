@@ -200,3 +200,18 @@ class SellerView:
                 'offset'        : request.args.get('offset'),
                 'message'       :'SUCCESS',
             })
+
+        """
+        리스트 - 셀러정보 GET 엔드포인트
+        -------------------
+        request : query string
+        -------------------
+        return : http 응답코드 (200, 400, 401), 셀러에 따른 셀러정보
+        """
+        @app.route("/seller/list-info-get/<int:user_id>", methods=['GET'])
+        def seller_info_detail_get(user_id):
+            seller_info_detail = seller_service.seller_info_detail_check(user_id)
+
+            return jsonify({
+                'seller_info' : seller_info_detail
+            })

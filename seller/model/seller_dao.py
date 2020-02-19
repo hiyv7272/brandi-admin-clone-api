@@ -1,10 +1,7 @@
 import mysql.connector
 import traceback
 
-<<<<<<< HEAD
 from datetime import datetime
-=======
->>>>>>> 4bcf292a3461f01880dbe98f7ba4400eaeaa4c6c
 from mysql.connector.errors import Error 
 from mysql.connector.cursor import MySQLCursor
 from flask                  import abort
@@ -442,6 +439,7 @@ class SellerDao:
                     'is_used' : seller_representative_data[i][5]
                 }
                 seller_info['seller_representative'].append(seller_representative)
+
             return seller_info
 
             db_cursor.close()
@@ -458,7 +456,6 @@ class SellerDao:
     """
     def update_seller_info(self, seller_data, seller_info_data):
         db_cursor = self.db_connection.cursor()
-        print()
 
         try:
             # 트랜잭션 시작
@@ -522,7 +519,6 @@ class SellerDao:
     셀러 담당자 UPDATE 메소드
     """
     def update_seller_representative(self, seller_representative_data):
-        print('seller_representative_data @dao', seller_representative_data)
         db_cursor = self.db_connection.cursor()
         try:
             # 셀러 담당자 테이블 SELECT
@@ -710,4 +706,111 @@ class SellerDao:
 
         except mysql.connector.Error as err:
             traceback.print_exc()
+            abort(400, description="INVAILD_DATA")
+
+    """
+    list 셀러 정보 SELECT 메소드
+    """
+    def get_seller_info_detail(self, user_id):
+        db_cursor = self.db_connection.cursor()
+        
+        try:
+            seller_data = {'id': user_id}
+            
+             # 셀러 정보 SELECT 문
+            query_get_seller_info = ("""
+                SELECT
+                    a.accounts_id,
+                    a.account,
+                    a.seller_types_id,
+                    a.name_kr,
+                    a.name_en,
+                    a.cs_phone_number,
+                    a.site_url,
+                    a.instagram_account,
+                    a.cs_kakao_account,
+                    a.cs_yellow_account,
+                    b.profile_image,
+                    b.ceo_name,
+                    b.company_name,
+                    b.company_code,
+                    b.company_certi_image,
+                    b.mail_order_code,
+                    b.mail_order_image,
+                    b.bg_image,
+                    b.single_line_intro,
+                    b.detailed_intro,
+                    b.shopping_info,
+                    b.refund_info
+                FROM sellers AS a
+                INNER JOIN sellers_info AS b
+                ON a.seller_info_id = b.id
+                WHERE a.id = %(id)s limit 1
+            """)
+            db_cursor.execute(query_get_seller_info, seller_data)
+
+            for row in db_cursor:
+                seller_info = {
+                    'accounts_id' : row[0],
+                    'accounts'    : row[1],
+                    'seller_types_id' : row[2],
+                    'name_kr' : row[3],
+                    'name_en' : row[4],
+                    'cs_phone_number' : row[5],
+                    'site_url' : row[6],
+                    'instagram_account' : row[7],
+                    'cs_kakao_account'  : row[8],
+                    'cs_yellow_account' : row[9],
+                    'profile_image' : row[10],
+                    'ceo_name' : row[11],
+                    'company_name' : row[12],
+                    'company_code' : row[13],
+                    'company_certi_image' : row[14],
+                    'mail_order_code' : row[15],
+                    'mail_order_image' : row[16],
+                    'bg_image' : row[17],
+                    'single_line_intro' : row[18],
+                    'detailed_intro' : row[19],
+                    'shopping_info' : row[20],
+                    'refund_info' : row[21],
+                    'seller_representative' : []
+                }
+            
+             # 셀러 담당자 SELECT 문
+            query_get_seller_representative = ("""
+                SELECT
+                id,
+                sellers_id,
+                name,
+                mobile_number,
+                email,
+                is_used
+                FROM seller_representative
+                WHERE 
+                sellers_id = (SELECT id FROM sellers WHERE id = %(id)s)
+                AND
+                is_used = TRUE limit 3
+            """)
+            db_cursor.execute(query_get_seller_representative, seller_data)
+            seller_representative_data = db_cursor.fetchall()
+
+            for i in range(len(seller_representative_data)):
+                seller_representative = {
+                    'id' : seller_representative_data[i][0],
+                    'sellers_id' : seller_representative_data[i][1],
+                    'name' : seller_representative_data[i][2],
+                    'mobile_number' : seller_representative_data[i][3],
+                    'email' : seller_representative_data[i][4],
+                    'is_used' : seller_representative_data[i][5]
+                }
+                seller_info['seller_representative'].append(seller_representative)
+
+            return seller_info
+
+            db_cursor.close()
+
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
             abort(400, description="INVAILD_DATA")
