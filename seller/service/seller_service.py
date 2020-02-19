@@ -11,7 +11,7 @@ from werkzeug.utils     import secure_filename
 from flask              import request, jsonify, current_app, g, abort
 from flask.json         import JSONEncoder
 from datetime           import datetime, timedelta
-from smart_open import open
+from smart_open         import open
 
 
 class SellerService():
@@ -179,7 +179,7 @@ class SellerService():
         seller_info  = self.seller_dao.get_seller_info(seller_info)
             
         return seller_info
-
+        
     """
     셀러정보를 업데이트하는 메소드
     """
@@ -227,6 +227,7 @@ class SellerService():
         
         except KeyError:
             abort (400, description="INVALID_KEY")
+
 
     """
     request 파라미터 유효성검사 메소드
@@ -294,3 +295,12 @@ class SellerService():
         
         except:
             abort (400, description="INVALID_VALUE")
+
+    """
+    List 셀러정보를 확인하는 메소드
+    """
+    def seller_info_detail_check(self, user_id):
+
+        seller_info_detail_check  = self.seller_dao.get_seller_info_detail(user_id)
+            
+        return seller_info_detail_check
