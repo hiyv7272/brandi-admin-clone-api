@@ -1,4 +1,5 @@
 import mysql.connector
+import datetime
 from flask import abort
 
 class ProductDao:
@@ -243,7 +244,7 @@ class ProductDao:
                 %(maximum_quantity)s,
                 %(product_tags_used)s,
                 %(updated_at)s,
-                (SELECT id from accounts WHERE id=1 LIMIT 1),
+                (SELECT id from accounts WHERE account=%(creator_id)s LIMIT 1),
                 %(changer_id)s
             )
         """)
@@ -395,6 +396,31 @@ class ProductDao:
                 self.replace_basic_option_with_name(db_cursor, option)
             return basic_option
 
+    def change_to_first_category_name(self, db_cursor, product):
+        first_category_data = {
+            'first_category_id' : product['first_categories_id']
+        }
+        first_category_query = "SELECT name FROM first_categories WHERE id=%(first_category_id)s LIMIT 1"
+        db_cursor.execute(first_category_query, first_category_data)
+        first_category_name = db_cursor.fetchone()
+
+        # 이름으로 치환
+        product['first_categories_id'] = first_category_name['name']
+        return
+    
+    def change_to_second_category_name(self, db_cursor, product):
+        second_category_data = {
+            'second_category_id' : product['second_categories_id']
+        }
+        second_category_query = "SELECT name FROM second_categories WHERE id=%(second_category_id)s LIMIT 1"
+        db_cursor.execute(second_category_query, second_category_data)
+        second_category_name = db_cursor.fetchone()
+
+        # 이름으로 치환
+        product['second_categories_id'] = second_category_name['name']
+        return
+    
+
     # 상세 상품 정보를 DB에서 조회하여 리턴하는 함수
     def product_detail_dao(self, product_code):
         try:
@@ -406,6 +432,10 @@ class ProductDao:
 
             # product 변수에 basic_options 키와 값을 추가
             product['basic_options'] = basic_options
+
+            # 카테고리 정보는 이름으로 변경해줌
+            self.change_to_first_category_name(db_cursor, product)
+            self.change_to_second_category_name(db_cursor, product)
 
             # print('final product return check=',end=''),print(product) # debug print
             return product
@@ -517,6 +547,17 @@ class ProductDao:
             products_param['end_date'] = end_date
             where_added = True
             products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
+            # if start_date == end_date:
+                # products_param['start_date'] = start_date
+                # products_param['end_date'] = end_date
+                # where_added = True
+                # products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(start_date)s + 1 DAY) '
+            #     pass
+            # else:
+            #     products_param['start_date'] = start_date
+            #     products_param['end_date'] = end_date
+            #     where_added = True
+            #     products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
         return products_query, where_added
 
     # 페이지네이션 셀러 조건 쿼리 함수, 서브쿼리로 accounts_id를 선택후 상품의 등록자 조건으로 걸어줌
@@ -644,6 +685,9 @@ class ProductDao:
             limit = int(request.args.get('limit', 10))
             offset = (int(request.args.get('offset', 1))-1)*limit
 
+            print("limit=",end=""),print(limit)
+            print("offset=",end=""),print(offset)
+
             db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
 
             # 1. 동적 쿼리문 생성
@@ -696,7 +740,7 @@ class ProductDao:
             # 3. 상품 리스트 리턴
             products_data = [
             {
-                'created_at'        : row['created_at'],
+                'created_at'        : str(row['created_at']),
                 'main_image'        : row['main_image'],
                 'name'              : row['name'],
                 'serial_number'     : row['serial_number'],
