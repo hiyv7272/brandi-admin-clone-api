@@ -97,3 +97,6 @@ class ProductService:
     def product_pagination(self, request):
         products_data = self.product_dao.product_pagination_dao(request)
         return products_data
+
+    def modify_product(self, request):
+        self.product_dao.modify_product_dao(request)
