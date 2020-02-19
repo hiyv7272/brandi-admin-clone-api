@@ -425,7 +425,7 @@ class ProductDao:
             db_cursor.close()
 
     # 기본 페이지네이션 쿼리문 반환 함수
-    def get_product_pagination_query(self, request):
+    def get_product_pagination_query(self, request, products_param):
         
         seller_attribute = request.args.get('seller_attribute')
         if seller_attribute is None:
@@ -449,27 +449,61 @@ class ProductDao:
                 ON products.creator_id=sq.accounts_id)
             """)
         else:
-            products_query = ("""
-                SELECT
-                    products.created_at,
-                    products.main_image,
-                    products.name,
-                    products.serial_number,
-                    products.product_number,
-                    products.price,
-                    products.discounted_price,
-                    products.is_sold,
-                    products.is_displayed,
-                    products.discount_price,
-                    sq.name_kr,
-                    sq.name AS seller_attr
-                FROM (products 
-                INNER JOIN (SELECT sellers.accounts_id, sellers.name_kr, sellers.seller_types_id, seller_types.name FROM sellers INNER JOIN seller_types 
-                ON sellers.seller_types_id=seller_types.id 
-                WHERE seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute)s)) AS sq
-                ON products.creator_id=sq.accounts_id)
-            """)
-        
+            list_of_seller_attribute = seller_attribute.split(",")
+
+            print("list_of_seller_attribute=", end=""), print(list_of_seller_attribute)
+
+            if len(list_of_seller_attribute) <= 1:
+                products_query = ("""
+                    SELECT
+                        products.created_at,
+                        products.main_image,
+                        products.name,
+                        products.serial_number,
+                        products.product_number,
+                        products.price,
+                        products.discounted_price,
+                        products.is_sold,
+                        products.is_displayed,
+                        products.discount_price,
+                        sq.name_kr,
+                        sq.name AS seller_attr
+                    FROM (products 
+                    INNER JOIN (SELECT sellers.accounts_id, sellers.name_kr, sellers.seller_types_id, seller_types.name FROM sellers INNER JOIN seller_types 
+                    ON sellers.seller_types_id=seller_types.id 
+                    WHERE seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute)s)) AS sq
+                    ON products.creator_id=sq.accounts_id)
+                """)
+            elif len(list_of_seller_attribute) > 1:
+                products_query = ("""
+                    SELECT
+                        products.created_at,
+                        products.main_image,
+                        products.name,
+                        products.serial_number,
+                        products.product_number,
+                        products.price,
+                        products.discounted_price,
+                        products.is_sold,
+                        products.is_displayed,
+                        products.discount_price,
+                        sq.name_kr,
+                        sq.name AS seller_attr
+                    FROM (products 
+                    INNER JOIN (SELECT sellers.accounts_id, sellers.name_kr, sellers.seller_types_id, seller_types.name FROM sellers INNER JOIN seller_types 
+                    ON sellers.seller_types_id=seller_types.id 
+                """)
+
+                for i in range(0, len(list_of_seller_attribute)):
+                    if i == 0:
+                        products_param['seller_attribute_'+str(i)] = list_of_seller_attribute[i]
+                        products_query += ' WHERE (seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute_0)s))'
+                    elif i == 1:
+                        products_param['seller_attribute_'+str(i)] = list_of_seller_attribute[i]
+                        products_query += ' OR (seller_types_id=(SELECT id from seller_types WHERE name=%(seller_attribute_1)s))'
+
+                products_query += ') AS sq ON products.creator_id=sq.accounts_id)'
+
         return products_query
 
     # 페이지네이션 날짜 조건 쿼리 함수
@@ -618,7 +652,7 @@ class ProductDao:
                 'limit':limit,
                 'offset':offset,
             }
-            products_query = self.get_product_pagination_query(request)
+            products_query = self.get_product_pagination_query(request, products_param)
 
             # 1-1. 셀러 속성 조건
             self.check_pagination_seller_attribute(products_query, products_param, request)
