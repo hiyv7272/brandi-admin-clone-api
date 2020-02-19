@@ -181,3 +181,22 @@ class SellerView:
             seller_info_update  = seller_service.update_seller_info(seller_request_data, g.user_info)
 
             return jsonify({'message':'SUCCESS'}, 200)
+
+        """
+        셀러 리스트 정보 SELECT 엔드포인트
+        -------------------
+        request : query string
+        -------------------
+        return : http 응답코드 (200, 400, 401)
+        """
+        @app.route("/seller/list", methods=['GET'])
+        def seller_list():
+            seller_list, seller_count     = seller_service.seller_list_get(request)
+
+            return jsonify({
+                'seller_info'   : seller_list,
+                'seller_count'  : seller_count,
+                'limit'         : request.args.get('limit'),
+                'offset'        : request.args.get('offset'),
+                'message'       :'SUCCESS',
+            })

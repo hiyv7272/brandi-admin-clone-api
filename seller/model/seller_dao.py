@@ -1,6 +1,8 @@
 import mysql.connector
+import traceback
 
-from mysql.connector.errors import Error
+from datetime import datetime
+from mysql.connector.errors import Error 
 from mysql.connector.cursor import MySQLCursor
 from flask                  import abort
 
@@ -556,4 +558,153 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            abort(400, description="INVAILD_DATA")
+
+    """
+    셀러 리스트 SEARCH 메소드
+    """    
+    def search_seller_list(self, request_param):
+        try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+            seller_list = []
+
+            # 셀러 정보를 찾는 기본 SELECT문
+            select_seller_info = ("""
+                SELECT
+                a.id,
+                a.account,
+                a.name_kr,
+                a.name_en,
+                a.site_url,
+                a.seller_status_id,
+                a.seller_types_id,
+                a.created_at,
+                ANY_VALUE(b.name),
+                ANY_VALUE(b.mobile_number),
+                ANY_VALUE(b.email)
+                FROM sellers AS a
+                LEFT JOIN seller_representative AS b
+                ON a.id = b.sellers_id
+                WHERE 1=1
+            """)
+
+            # 셀러의 상품 카운트정보 SELECT COUNT문
+            count_seller_product = ("""
+                SELECT 
+                COUNT(creator_id)
+                FROM products
+                WHERE creator_id = %(id)s
+            """)
+
+            # query로 받는 파라미터 중 다음 항목이 있으면 해당하는 WHERE 조건을 추가
+            # start_date와 end_date가 있으면, 날짜시간 포맷 후 WHERE 조건 추가
+            if request_param['start_date'] and request_param['end_date']:
+                start_date          = '"'+str(request_param['start_date']) + " 00:00:00"+'"'
+                end_date            = '"'+str(request_param['end_date']) + " 23:59:59"+'"'
+                select_seller_info += f' AND a.created_at BETWEEN {start_date} AND {end_date}'  
+
+            #  id가 있으면, id WHERE 조건 추가
+            if 'id' in request_param:
+                id = "'" + str(request_param['id']) + "'"
+                select_seller_info += f' AND a.id = {id}'
+            else:None
+            
+            # account가 있으면, account WHERE like 조건 추가
+            if 'account' in request_param:
+                account = "'%" + str(request_param['account']) + "%'"
+                select_seller_info += f' AND a.account like {account}'
+            else:None
+            
+            # name_kr가 있으면, name_kr가 WHERE like 조건 추가
+            if 'name_kr' in request_param:
+                name_kr = "'%" + str(request_param['name_kr']) + "%'"
+                select_seller_info += f' AND a.name_kr like {name_kr}'
+            else:None
+            
+            # name_en가 있으면, name_en가 WHERE like 조건 추가
+            if 'name_en' in request_param:
+                name_en = "'%" + str(request_param['name_en']) + "%'"
+                select_seller_info += f' AND a.name_en like {name_en}'
+            else:None
+
+            # site_url 있으면, site_url WHERE like 조건 추가
+            if 'site_url' in request_param:
+                site_url = "'%" + str(request_param['site_url']) + "%'"
+                select_seller_info += f' AND a.site_url like {site_url}'
+            else:None
+
+            # seller_types_id 있으면, seller_types_id WHERE 조건 추가
+            if 'seller_types_id' in request_param:
+                seller_types_id = "'" + str(request_param['seller_types_id']) + "'"
+                select_seller_info += f' AND a.seller_types_id = {seller_types_id}'
+            else:None
+
+            # representative_name 있으면, representative_name WHERE like 조건 추가
+            if 'representative_name' in request_param:
+                representative_name = "'%" + str(request_param['representative_name']) + "%'"
+                select_seller_info += f' AND b.name like {representative_name}'
+            else:None
+
+            # mobile_number 있으면, mobile_number WHERE like 조건 추가
+            if 'mobile_number' in request_param:
+                mobile_number = "'%" + str(request_param['mobile_number']) + "%'"
+                select_seller_info += f' AND b.mobile_number like {mobile_number}'
+            else:None
+
+            # email 있으면, email WHERE like 조건 추가
+            if 'email' in request_param:
+                email = "'%" + str(request_param['email']) + "%'"
+                select_seller_info += f' AND b.email like {email}'
+            else:None
+
+            # CASE_1 셀러정보확인 쿼리      : GROUP BY 조건 및 limit과 offset 쿼리 추가
+            # CASE_2 셀러정보카운트 쿼리    : GROUP BY 조건 쿼리 추가 
+            seller_list_info_end_query      = '    GROUP BY a.id limit %(limit)s' + ' offset ' + '%(offset)s'
+            serller_list_count_end_query    = '    GROUP BY a.id'
+
+            seller_info_query               = select_seller_info + seller_list_info_end_query
+            seller_info_count_query         = select_seller_info + serller_list_count_end_query
+
+            # 셀러정보확인 쿼리 실행
+            db_cursor.execute(seller_info_query, request_param)
+            seller_list_data = db_cursor.fetchall()
+            
+            # seller_list에 query에 대한 data 입력
+            for row in seller_list_data:             
+                seller_data = {
+                    'id'                    : row['id'],
+                    'account'               : row['account'],
+                    'name_kr'               : row['name_kr'],
+                    'name_en'               : row['name_en'],
+                    'site_url'              : row['site_url'],
+                    'seller_status_id'      : row['seller_status_id'],
+                    'seller_types_id'       : row['seller_types_id'],
+                    'representative_name'   : row['ANY_VALUE(b.name)'],
+                    'mobile_number'         : row['ANY_VALUE(b.mobile_number)'],
+                    'email'                 : row['ANY_VALUE(b.email)'],
+                    'created_at'            : row['created_at'],
+                    'product_count'         : ''
+                }
+                seller_list.append(seller_data)
+                # 셀러의 상품 카운트정보를 각 셀러에 매핑
+                for i in range(len(seller_list)):
+                    creator_id=seller_list[i]['id']
+                    db_cursor.execute(count_seller_product, seller_list[i])
+                    product_count = db_cursor.fetchone()['COUNT(creator_id)']
+                    seller_list[i]['product_count'] = product_count
+            
+            # 셀러정보카운트확인 쿼리 실행
+            db_cursor.execute(seller_info_count_query, request_param)
+            seller_list_count = db_cursor.fetchall()
+            seller_count = len(seller_list_count)
+            
+
+            return seller_list, seller_count
+            db_cursor.close()
+            
+        except KeyError:
+            abort(400, description="INVAILD_KEY")
+
+        except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
