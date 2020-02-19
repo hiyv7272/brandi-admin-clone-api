@@ -228,54 +228,69 @@ class SellerService():
         except KeyError:
             abort (400, description="INVALID_KEY")
 
+    """
+    request 파라미터 유효성검사 메소드
+    """
+    def request_parameter_validate(self, request):
+        request_parameter = {}
     
-    def seller_list_get(self, request):
+        if request.args.get('id'):
+            request_parameter['id'] = int(request.args.get('id'))
 
-        request_param = {}
-        if request.args.get('limit'):
-            request_param['limit'] = int(request.args.get('limit'))
+        if request.args.get('limit') > '0':
+            limit = int(request.args.get('limit'))
+            request_parameter['limit'] = limit
         else:
-            request_param['limit'] = 10
+            limit = 10
         
-        if request.args.get('offset'):
-            request_param['offset'] = int(request.args.get('offset'))
+        if request.args.get('offset') > '0':
+            request_parameter['offset'] = (int(request.args.get('offset', 1))-1) * limit
         else:
-            request_param['offset'] = 0
+            request_parameter['offset'] = 0
 
-        if request.args.get('start_date'):
-            request_param['start_date'] = request.args.get('start_date')
-        
-        if request.args.get('end_date'):
-            request_param['end_date'] = request.args.get('end_date')
-        
+        if request.args.get('start_date') and request.args.get('end_date'):
+            request_parameter['start_date'] = request.args.get('start_date')
+            request_parameter['end_date'] = request.args.get('end_date')
+                 
         if request.args.get('account'):
-            request_param['account'] = request.args.get('account')
+            request_parameter['account'] = request.args.get('account')
 
         if request.args.get('name_kr'):
-            request_param['name_kr'] = request.args.get('name_kr')
+            request_parameter['name_kr'] = request.args.get('name_kr')
 
         if request.args.get('name_en'):
-            request_param['name_en'] = request.args.get('name_en')
+            request_parameter['name_en'] = request.args.get('name_en')
 
         if request.args.get('site_url'):
-            request_param['site_url'] = request.args.get('site_url')
+            request_parameter['site_url'] = request.args.get('site_url')
+
+        if request.args.get('seller_types_id'):
+            request_parameter['seller_types_id'] = request.args.get('seller_types_id')
         
         if request.args.get('representative_name'):
-            request_param['representative_name'] = request.args.get('representative_name')
+            request_parameter['representative_name'] = request.args.get('representative_name')
         
         if request.args.get('mobile_number'):
-            request_param['mobile_number'] = request.args.get('mobile_number')
+            request_parameter['mobile_number'] = request.args.get('mobile_number')
 
         if request.args.get('email'):
-            request_param['email'] = request.args.get('email')
+            request_parameter['email'] = request.args.get('email')
+
+        return request_parameter
+
+    """
+    셀러 리스트정보를 받는 메소드
+    """    
+    def seller_list_get(self, request):
+        try:
+            request_parameter = self.request_parameter_validate(request)
+
+            # print('파라미터!!', request_parameter)
+            seller_list_get, seller_count_get = self.seller_dao.search_seller_list(request_parameter)
+            return seller_list_get, seller_count_get
+
+        except KeyError:
+            abort (400, description="INVALID_KEY")
         
-    
-        seller_list_get = self.seller_dao.search_seller_list(request_param)
-
-        return seller_list_get
-
-    def serller_list_count(self):
-
-        seller_count_get = self.seller_dao.search_seller_count()
-
-        return seller_count_get
+        except:
+            abort (400, description="INVALID_VALUE")
