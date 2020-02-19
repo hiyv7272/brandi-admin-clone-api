@@ -669,9 +669,9 @@ class ProductDao:
                 'product_number'    : row['product_number'],
                 'price'             : row['price'],
                 'discounted_price'  : row['discounted_price'],
-                'is_sold'           : row['is_sold'],
-                'is_displayed'      : row['is_displayed'],
-                'is_discounted'     : True if row['discount_price'] is not None else False,
+                'is_sold'           : '판매' if row['is_sold'] else '미판매',
+                'is_displayed'      : '진열' if row['is_displayed'] else '미진열',
+                'is_discounted'     : '할인' if row['discount_price'] is not None else '미할인',
                 'seller_name'       : row['name_kr'],
                 'seller_type'       : row['seller_attr']
             } for row in rows]
