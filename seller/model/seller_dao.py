@@ -1,10 +1,7 @@
 import mysql.connector
 import traceback
 
-<<<<<<< HEAD
 from datetime import datetime
-=======
->>>>>>> 4bcf292a3461f01880dbe98f7ba4400eaeaa4c6c
 from mysql.connector.errors import Error 
 from mysql.connector.cursor import MySQLCursor
 from flask                  import abort
@@ -591,6 +588,15 @@ class SellerDao:
                 WHERE 1=1
             """)
 
+            select_seller_count = ("""
+                SELECT
+                COUNT(0) cnt
+                FROM sellers AS a
+                LEFT JOIN seller_representative AS b
+                ON a.id = b.sellers_id
+                WHERE 1=1
+            """)
+
             # 셀러의 상품 카운트정보 SELECT COUNT문
             count_seller_product = ("""
                 SELECT 
@@ -601,63 +607,65 @@ class SellerDao:
 
             # query로 받는 파라미터 중 다음 항목이 있으면 해당하는 WHERE 조건을 추가
             # start_date와 end_date가 있으면, 날짜시간 포맷 후 WHERE 조건 추가
+            seller_info_filter = ""
+
             if request_param['start_date'] and request_param['end_date']:
                 start_date          = '"'+str(request_param['start_date']) + " 00:00:00"+'"'
                 end_date            = '"'+str(request_param['end_date']) + " 23:59:59"+'"'
-                select_seller_info += f' AND a.created_at BETWEEN {start_date} AND {end_date}'  
+                seller_info_filter += f' AND a.created_at BETWEEN {start_date} AND {end_date}'  
 
             #  id가 있으면, id WHERE 조건 추가
             if 'id' in request_param:
                 id = "'" + str(request_param['id']) + "'"
-                select_seller_info += f' AND a.id = {id}'
+                seller_info_filter += f' AND a.id = {id}'
             else:None
             
             # account가 있으면, account WHERE like 조건 추가
             if 'account' in request_param:
                 account = "'%" + str(request_param['account']) + "%'"
-                select_seller_info += f' AND a.account like {account}'
+                seller_info_filter += f' AND a.account like {account}'
             else:None
             
             # name_kr가 있으면, name_kr가 WHERE like 조건 추가
             if 'name_kr' in request_param:
                 name_kr = "'%" + str(request_param['name_kr']) + "%'"
-                select_seller_info += f' AND a.name_kr like {name_kr}'
+                seller_info_filter += f' AND a.name_kr like {name_kr}'
             else:None
             
             # name_en가 있으면, name_en가 WHERE like 조건 추가
             if 'name_en' in request_param:
                 name_en = "'%" + str(request_param['name_en']) + "%'"
-                select_seller_info += f' AND a.name_en like {name_en}'
+                seller_info_filter += f' AND a.name_en like {name_en}'
             else:None
 
             # site_url 있으면, site_url WHERE like 조건 추가
             if 'site_url' in request_param:
                 site_url = "'%" + str(request_param['site_url']) + "%'"
-                select_seller_info += f' AND a.site_url like {site_url}'
+                seller_info_filter += f' AND a.site_url like {site_url}'
             else:None
 
             # seller_types_id 있으면, seller_types_id WHERE 조건 추가
             if 'seller_types_id' in request_param:
                 seller_types_id = "'" + str(request_param['seller_types_id']) + "'"
-                select_seller_info += f' AND a.seller_types_id = {seller_types_id}'
+                seller_info_filter += f' AND a.seller_types_id = {seller_types_id}'
             else:None
 
             # representative_name 있으면, representative_name WHERE like 조건 추가
             if 'representative_name' in request_param:
                 representative_name = "'%" + str(request_param['representative_name']) + "%'"
-                select_seller_info += f' AND b.name like {representative_name}'
+                seller_info_filter += f' AND b.name like {representative_name}'
             else:None
 
             # mobile_number 있으면, mobile_number WHERE like 조건 추가
             if 'mobile_number' in request_param:
                 mobile_number = "'%" + str(request_param['mobile_number']) + "%'"
-                select_seller_info += f' AND b.mobile_number like {mobile_number}'
+                seller_info_filter += f' AND b.mobile_number like {mobile_number}'
             else:None
 
             # email 있으면, email WHERE like 조건 추가
             if 'email' in request_param:
                 email = "'%" + str(request_param['email']) + "%'"
-                select_seller_info += f' AND b.email like {email}'
+                seller_info_filter += f' AND b.email like {email}'
             else:None
 
             # CASE_1 셀러정보확인 쿼리      : GROUP BY 조건 및 limit과 offset 쿼리 추가
@@ -665,8 +673,8 @@ class SellerDao:
             seller_list_info_end_query      = '    GROUP BY a.id limit %(limit)s' + ' offset ' + '%(offset)s'
             serller_list_count_end_query    = '    GROUP BY a.id'
 
-            seller_info_query               = select_seller_info + seller_list_info_end_query
-            seller_info_count_query         = select_seller_info + serller_list_count_end_query
+            seller_info_query               = select_seller_info + seller_info_filter + seller_list_info_end_query
+            seller_info_count_query         = select_seller_count + seller_info_filter + serller_list_count_end_query
 
             # 셀러정보확인 쿼리 실행
             db_cursor.execute(seller_info_query, request_param)
