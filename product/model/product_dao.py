@@ -79,12 +79,18 @@ class ProductDao:
             # 옵션타입에 따라 테이블에 삽입
             if option_type == self.BASIC_OPTION:
                 for option_list in option_info_json:
+                    stock_volume = option_list.get('stock_volume')
+                    if stock_volume is None or len(stock_volume) == 0:
+                        input_stock_volume = None
+                    else:
+                        input_stock_volume = option_list['stock_volume']
+                    
                     basic_options_data = {
                         'option_info_id': option_info_id,
                         'basic_options_colors_id' : option_list['basic_options_colors_id'],
                         'basic_options_sizes_id' : option_list['basic_options_sizes_id'],
                         'is_stock_managed': option_list['is_stock_managed'],
-                        'stock_volume': option_list['stock_volume'],
+                        'stock_volume': input_stock_volume,
                     }
                 
                     basic_options_query = ("""
