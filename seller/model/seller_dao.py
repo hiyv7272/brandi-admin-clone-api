@@ -934,3 +934,75 @@ class SellerDao:
 
         except mysql.connector.Error as err:
             abort(400, description="INVAILD_DATA")
+
+
+    def select_user(self):
+        db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+        user_data = []
+        select_query = ("""
+            SELECT
+            authorities_id,
+            account,
+            password
+            FROM accounts
+            where id < 12
+        """)
+        db_cursor.execute(select_query)
+        user_data = db_cursor.fetchall()
+        print(user_data)
+        return user_data
+
+    def update_user(self, user_data):
+        db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+        
+        update_account_query = ("""
+            UPDATE
+            accounts
+            SET
+            password = %(password)s
+            where account = %(account)s
+        """)
+
+        insert_master_query =("""
+            INSERT INTO
+            masters (
+                accounts_id,
+                account,
+                password,
+                name_kr,
+                name_en,
+                is_used
+            ) VALUES (
+                (SELECT id FROM accounts WHERE account = %(account)s),
+                %(account)s,
+                %(password)s,
+                '마스터',
+                'master',
+                TRUE
+            )
+        """)
+
+        update_seller_query =("""
+            UPDATE
+            sellers
+            SET
+            password = %(password)s
+            where account = %(account)s
+        """)
+
+        for row in user_data:
+            db_cursor.execute(update_account_query, row)
+            print(row)
+        
+        for row in user_data:
+            if row['authorities_id'] == 1:
+                db_cursor.execute(insert_master_query, row)
+                
+            if row['authorities_id'] == 2:
+                db_cursor.execute(update_seller_query, row)
+
+
+                
+            
+        self.db_connection.commit() 
+        db_cursor.close()

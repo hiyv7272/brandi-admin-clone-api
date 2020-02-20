@@ -231,3 +231,13 @@ class SellerView:
             seller_info_detail = seller_service.seller_info_detail_update(seller_request_data, user_id)
 
             return jsonify({'message':'SUCCESS'}, 200)
+
+
+        """
+        account-bcyrpt
+        """
+        @app.route("/password-bcrypt", methods=['GET'])
+        def password_bcrypt():
+            password_bcrypt = seller_service.account_password_bcyprt()
+
+            return jsonify({'message':'SUCCESS'}, 200)

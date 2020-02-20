@@ -354,3 +354,25 @@ class SellerService():
         
         except KeyError:
             abort (400, description="INVALID_KEY")
+
+
+    """
+    account-bcyrpt
+    """
+    def account_password_bcyprt(self):
+        try:
+            user_data = self.seller_dao.select_user() 
+
+            for row in user_data:
+
+                row['password']  = bcrypt.hashpw(  
+                    row['password'].encode('UTF-8'),
+                    bcrypt.gensalt()
+                )
+                
+            update_user = self.seller_dao.update_user(user_data)
+
+            return user_data
+        
+        except KeyError:
+            abort (400, description="INVALID_KEY")
