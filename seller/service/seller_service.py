@@ -185,16 +185,10 @@ class SellerService():
     """
     def update_seller_info(self, seller_request_data, user_info):
         try:
-            print("start")
             seller_data = {
                 'accounts_id'       : user_info['accounts_id'],
                 'name_kr'           : seller_request_data['seller_info']['name_kr'],
-                'name_en'           : seller_request_data['seller_info']['name_en'],
-                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
-                'site_url'          : seller_request_data['seller_info']['site_url'],
-                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
-                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
-                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
+                'name_en'           : seller_request_data['seller_info']['name_en']
             }
 
             seller_info_data = {
@@ -210,20 +204,23 @@ class SellerService():
                 'single_line_intro'     : seller_request_data['seller_info']['single_line_intro'],
                 'detailed_intro'        : seller_request_data['seller_info']['detailed_intro'],
                 'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
-                'refund_info'           : seller_request_data['seller_info']['refund_info']
+                'refund_info'           : seller_request_data['seller_info']['refund_info'],
+                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
+                'site_url'          : seller_request_data['seller_info']['site_url'],
+                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
+                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
+                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
             }
-            print("here1")
             seller_representative_data = seller_request_data['seller_info']['seller_representative']
-            print("here2")
             for i in range(len(seller_representative_data)):
                 seller_representative_data[i]['accounts_id'] = user_info['accounts_id']
-            print("here3")
+
             validation          = self.validate(seller_data)
             validation          = self.validate(seller_info_data)
-            print("here4")    
+
             update_seller_info              = self.seller_dao.update_seller_info(seller_data, seller_info_data)
             update_seller_representative    = self.seller_dao.update_seller_representative(seller_representative_data)
-            print("end")
+
             return update_seller_info
         
         except KeyError as err:
@@ -317,12 +314,7 @@ class SellerService():
             seller_data = {
                 'sellers_id'        : user_id,
                 'name_kr'           : seller_request_data['seller_info']['name_kr'],
-                'name_en'           : seller_request_data['seller_info']['name_en'],
-                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
-                'site_url'          : seller_request_data['seller_info']['site_url'],
-                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
-                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
-                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
+                'name_en'           : seller_request_data['seller_info']['name_en']
             }
 
             seller_info_data = {
@@ -338,7 +330,12 @@ class SellerService():
                 'single_line_intro'     : seller_request_data['seller_info']['single_line_intro'],
                 'detailed_intro'        : seller_request_data['seller_info']['detailed_intro'],
                 'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
-                'refund_info'           : seller_request_data['seller_info']['refund_info']
+                'refund_info'           : seller_request_data['seller_info']['refund_info'],
+                'cs_phone_number'   : seller_request_data['seller_info']['cs_phone_number'],
+                'site_url'          : seller_request_data['seller_info']['site_url'],
+                'instagram_account' : seller_request_data['seller_info']['instagram_account'],
+                'cs_kakao_account'  : seller_request_data['seller_info']['cs_kakao_account'],
+                'cs_yellow_account' : seller_request_data['seller_info']['cs_yellow_account']
             }
 
             seller_representative_data = seller_request_data['seller_info']['seller_representative']
@@ -359,7 +356,7 @@ class SellerService():
 
 
     """
-    account-bcyrpt
+    시연 초기 mocked 데이터 수정(account-bcyrpt)
     """
     def account_password_bcyprt(self):
         try:

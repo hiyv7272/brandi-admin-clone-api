@@ -233,7 +233,7 @@ class SellerView:
 
 
         """
-        account-bcyrpt
+         시연 초기 mocked 데이터 수정(account-bcyrpt)
         """
         @app.route("/password-bcrypt", methods=['GET'])
         def password_bcrypt():

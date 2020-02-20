@@ -15,9 +15,9 @@ class SellerDao:
     계정생성 INSERT INTO 메소드
     """
     def insert_seller(self, new_seller):
-        db_cursor = self.db_connection.cursor()
       
         try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
             # POST 받은 account 정보
             new_seller_data = {
                 'seller_types_id'       : new_seller['seller_types_id'],
@@ -57,9 +57,17 @@ class SellerDao:
             # sellers_info 테이블 INSERT INTO문
             insert_selles_info = ("""
                 INSERT INTO sellers_info (
-                    accounts_id
+                    accounts_id,
+                    cs_phone_number,
+                    site_url,
+                    instagram_account,
+                    cs_kakao_account
                 ) VALUES (
-                    (SELECT id FROM accounts WHERE account = %(account)s limit 1)
+                    (SELECT id FROM accounts WHERE account = %(account)s limit 1),
+                    %(cs_phone_number)s,
+                    %(site_url)s,
+                    %(instagram_account)s,
+                    %(cs_kakao_account)s
                 )
             """)
             db_cursor.execute(insert_selles_info, new_seller_data)
@@ -76,11 +84,6 @@ class SellerDao:
                     name_kr,
                     name_en,
                     password,
-                    mobile_number,
-                    cs_phone_number,
-                    site_url,
-                    instagram_account,
-                    cs_kakao_account,
                     is_used
                 ) VALUES (
                     (SELECT id FROM accounts WHERE account = %(account)s limit 1),
@@ -93,11 +96,6 @@ class SellerDao:
                     %(name_kr)s,
                     %(name_en)s, 
                     %(password)s,
-                    %(mobile_number)s,
-                    %(cs_phone_number)s,
-                    %(site_url)s,
-                    %(instagram_account)s,
-                    %(cs_kakao_account)s,
                     TRUE
                 )
             """)
@@ -135,6 +133,7 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             query_rollback = ("ROLLBACK")
             db_cursor.execute(query_rollback)
             db_cursor.close()
@@ -144,9 +143,10 @@ class SellerDao:
     유저정보 SELECT 메소드
     """
     def get_user_info(self, user_data):
-        db_cursor = self.db_connection.cursor()
         
         try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+
             user_data = {
                 'account'  : user_data['account'],
                 'password' : user_data['password'],
@@ -166,10 +166,10 @@ class SellerDao:
 
             for row in db_cursor:
                 user_info = {
-                    'id' : row[0],
-                    'authorities_id' : row[1],
-                    'account' : row[2],
-                    'password' : row[3]
+                    'id'                : row['id'],
+                    'authorities_id'    : row['authorities_id'],
+                    'account'           : row['account'],
+                    'password'          : row['password']
                 }
                 return user_info
                        
@@ -179,14 +179,16 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
+
 
     """
     마스터 권한_그룹_메뉴 정보 SELECT 메소드
     """
     def master_auth_group_menu(self, master_info):
-        db_cursor = self.db_connection.cursor()
         try:
+            db_cursor = self.db_connection.cursor()
             master_menu = []
 
             master_data = {
@@ -258,14 +260,15 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
     """
     셀러 권한_그룹_메뉴 정보 SELECT 메소드
     """
     def seller_auth_group_menu(self, seller_info):
-        db_cursor = self.db_connection.cursor()
         try:
+            db_cursor = self.db_connection.cursor()
             seller_menu = []
 
             seller_data = {
@@ -337,6 +340,7 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
 
@@ -344,9 +348,8 @@ class SellerDao:
     셀러 정보 SELECT 메소드
     """
     def get_seller_info(self, seller_info):
-        db_cursor = self.db_connection.cursor()
-        
         try:
+            db_cursor = self.db_connection.cursor()
             seller_data = {
                 'accounts_id'    : seller_info['accounts_id'],
                 'authorities_id' : seller_info['authorities_id'],
@@ -360,11 +363,11 @@ class SellerDao:
                     a.seller_types_id,
                     a.name_kr,
                     a.name_en,
-                    a.cs_phone_number,
-                    a.site_url,
-                    a.instagram_account,
-                    a.cs_kakao_account,
-                    a.cs_yellow_account,
+                    b.cs_phone_number,
+                    b.site_url,
+                    b.instagram_account,
+                    b.cs_kakao_account,
+                    b.cs_yellow_account,
                     b.profile_image,
                     b.ceo_name,
                     b.company_name,
@@ -386,28 +389,28 @@ class SellerDao:
 
             for row in db_cursor:
                 seller_info = {
-                    'accounts_id' : row[0],
-                    'accounts'    : row[1],
-                    'seller_types_id' : row[2],
-                    'name_kr' : row[3],
-                    'name_en' : row[4],
-                    'cs_phone_number' : row[5],
-                    'site_url' : row[6],
-                    'instagram_account' : row[7],
-                    'cs_kakao_account'  : row[8],
-                    'cs_yellow_account' : row[9],
-                    'profile_image' : row[10],
-                    'ceo_name' : row[11],
-                    'company_name' : row[12],
-                    'company_code' : row[13],
-                    'company_certi_image' : row[14],
-                    'mail_order_code' : row[15],
-                    'mail_order_image' : row[16],
-                    'bg_image' : row[17],
-                    'single_line_intro' : row[18],
-                    'detailed_intro' : row[19],
-                    'shopping_info' : row[20],
-                    'refund_info' : row[21],
+                    'accounts_id'           : row[0],
+                    'accounts'              : row[1],
+                    'seller_types_id'       : row[2],
+                    'name_kr'               : row[3],
+                    'name_en'               : row[4],
+                    'cs_phone_number'       : row[5],
+                    'site_url'              : row[6],
+                    'instagram_account'     : row[7],
+                    'cs_kakao_account'      : row[8],
+                    'cs_yellow_account'     : row[9],
+                    'profile_image'         : row[10],
+                    'ceo_name'              : row[11],
+                    'company_name'          : row[12],
+                    'company_code'          : row[13],
+                    'company_certi_image'   : row[14],
+                    'mail_order_code'       : row[15],
+                    'mail_order_image'      : row[16],
+                    'bg_image'              : row[17],
+                    'single_line_intro'     : row[18],
+                    'detailed_intro'        : row[19],
+                    'shopping_info'         : row[20],
+                    'refund_info'           : row[21],
                     'seller_representative' : []
                 }
             
@@ -448,6 +451,7 @@ class SellerDao:
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
 
@@ -455,9 +459,8 @@ class SellerDao:
     셀러 정보 UPDATE 메소드
     """
     def update_seller_info(self, seller_data, seller_info_data):
-        db_cursor = self.db_connection.cursor()
-
         try:
+            db_cursor = self.db_connection.cursor()
             # 트랜잭션 시작
             query_start = ("START TRANSACTION")
             db_cursor.execute(query_start)
@@ -472,12 +475,7 @@ class SellerDao:
                 sellers
                 SET
                 name_kr = %(name_kr)s,
-                name_en = %(name_en)s,
-                cs_phone_number = %(cs_phone_number)s,
-                site_url = %(site_url)s,
-                instagram_account = %(instagram_account)s,
-                cs_kakao_account = %(cs_kakao_account)s,
-                cs_yellow_account = %(cs_yellow_account)s
+                name_en = %(name_en)s
                 WHERE accounts_id = %(accounts_id)s
             """)
             db_cursor.execute(update_sellers, seller_data)
@@ -487,29 +485,35 @@ class SellerDao:
                 UPDATE
                 sellers_info
                 SET
-                profile_image = %(profile_image)s,
-                ceo_name = %(ceo_name)s,
-                company_name = %(company_name)s,
-                company_code = %(company_code)s,
+                profile_image       = %(profile_image)s,
+                ceo_name            = %(ceo_name)s,
+                company_name        = %(company_name)s,
+                company_code        = %(company_code)s,
                 company_certi_image = %(company_certi_image)s,
-                mail_order_code = %(mail_order_code)s,
-                mail_order_image = %(mail_order_image)s,
-                bg_image = %(bg_image)s,
-                single_line_intro = %(single_line_intro)s,
-                detailed_intro = %(detailed_intro)s,
-                shopping_info = %(shopping_info)s,
-                refund_info = %(refund_info)s
-                WHERE accounts_id = %(accounts_id)s
+                mail_order_code     = %(mail_order_code)s,
+                mail_order_image    = %(mail_order_image)s,
+                bg_image            = %(bg_image)s,
+                single_line_intro   = %(single_line_intro)s,
+                detailed_intro      = %(detailed_intro)s,
+                shopping_info       = %(shopping_info)s,
+                refund_info         = %(refund_info)s,
+                site_url            = %(site_url)s,
+                instagram_account   = %(instagram_account)s,
+                cs_kakao_account    = %(cs_kakao_account)s,
+                cs_yellow_account   = %(cs_yellow_account)s
+                WHERE accounts_id   = %(accounts_id)s
             """)
             db_cursor.execute(update_sellers_info, seller_info_data)
 
             self.db_connection.commit()            
             db_cursor.close()
         
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             query_rollback = ("ROLLBACK")
             db_cursor.execute(query_rollback)
             db_cursor.close()
@@ -519,8 +523,8 @@ class SellerDao:
     셀러 담당자 UPDATE 메소드
     """
     def update_seller_representative(self, seller_representative_data):
-        db_cursor = self.db_connection.cursor()
         try:
+            db_cursor = self.db_connection.cursor()
             # 셀러 담당자 테이블 SELECT
             search_seller_representative = ("""
                 SELECT
@@ -534,10 +538,10 @@ class SellerDao:
                 UPDATE
                 seller_representative
                 SET
-                sellers_id = (SELECT id FROM sellers WHERE accounts_id = %(accounts_id)s),
-                name = %(name)s,
-                mobile_number = %(mobile_number)s,
-                email = %(email)s
+                sellers_id      = (SELECT id FROM sellers WHERE accounts_id = %(accounts_id)s),
+                name            = %(name)s,
+                mobile_number   = %(mobile_number)s,
+                email           = %(email)s
                 WHERE id = %(id)s
             """)
 
@@ -553,10 +557,12 @@ class SellerDao:
             self.db_connection.commit() 
             db_cursor.close()
         
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
     """
@@ -574,16 +580,18 @@ class SellerDao:
                 a.account,
                 a.name_kr,
                 a.name_en,
-                a.site_url,
                 a.seller_status_id,
                 a.seller_types_id,
                 a.created_at,
                 ANY_VALUE(b.name),
                 ANY_VALUE(b.mobile_number),
-                ANY_VALUE(b.email)
+                ANY_VALUE(b.email),
+                c.site_url
                 FROM sellers AS a
                 LEFT JOIN seller_representative AS b
                 ON a.id = b.sellers_id
+                LEFT JOIN sellers_info AS c
+                ON a.seller_info_id = c.id
                 WHERE 1=1
             """)
 
@@ -640,7 +648,7 @@ class SellerDao:
             # site_url 있으면, site_url WHERE like 조건 추가
             if 'site_url' in request_param:
                 site_url = "'%" + str(request_param['site_url']) + "%'"
-                seller_info_filter += f' AND a.site_url like {site_url}'
+                seller_info_filter += f' AND c.site_url like {site_url}'
             else:None
 
             # seller_types_id 있으면, seller_types_id WHERE 조건 추가
@@ -678,7 +686,7 @@ class SellerDao:
             # 셀러정보확인 쿼리 실행
             db_cursor.execute(seller_info_query, request_param)
             seller_list_data = db_cursor.fetchall()
-            
+
             # seller_list에 query에 대한 data 입력
             for row in seller_list_data:             
                 seller_data = {
@@ -686,12 +694,12 @@ class SellerDao:
                     'account'               : row['account'],
                     'name_kr'               : row['name_kr'],
                     'name_en'               : row['name_en'],
-                    'site_url'              : row['site_url'],
                     'seller_status_id'      : row['seller_status_id'],
                     'seller_types_id'       : row['seller_types_id'],
                     'representative_name'   : row['ANY_VALUE(b.name)'],
                     'mobile_number'         : row['ANY_VALUE(b.mobile_number)'],
                     'email'                 : row['ANY_VALUE(b.email)'],
+                    'site_url'              : row['site_url'],
                     'created_at'            : row['created_at'],
                     'product_count'         : ''
                 }
@@ -712,7 +720,8 @@ class SellerDao:
             return seller_list, seller_count
             db_cursor.close()
             
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
@@ -736,11 +745,11 @@ class SellerDao:
                     a.seller_types_id,
                     a.name_kr,
                     a.name_en,
-                    a.cs_phone_number,
-                    a.site_url,
-                    a.instagram_account,
-                    a.cs_kakao_account,
-                    a.cs_yellow_account,
+                    b.cs_phone_number,
+                    b.site_url,
+                    b.instagram_account,
+                    b.cs_kakao_account,
+                    b.cs_yellow_account,
                     b.profile_image,
                     b.ceo_name,
                     b.company_name,
@@ -763,28 +772,28 @@ class SellerDao:
 
             # for row in db_cursor:
             seller_info = {
-                'accounts_id' : get_seller_date['accounts_id'],
-                'accounts'    : get_seller_date['account'],
-                'seller_types_id' : get_seller_date['seller_types_id'],
-                'name_kr' : get_seller_date['name_kr'],
-                'name_en' : get_seller_date['name_en'],
-                'cs_phone_number' : get_seller_date['cs_phone_number'],
-                'site_url' : get_seller_date['site_url'],
-                'instagram_account' : get_seller_date['instagram_account'],
-                'cs_kakao_account'  : get_seller_date['cs_kakao_account'],
-                'cs_yellow_account' : get_seller_date['cs_yellow_account'],
-                'profile_image' : get_seller_date['profile_image'],
-                'ceo_name' : get_seller_date['ceo_name'],
-                'company_name' : get_seller_date['company_name'],
-                'company_code' : get_seller_date['company_code'],
-                'company_certi_image' : get_seller_date['company_certi_image'],
-                'mail_order_code' : get_seller_date['mail_order_code'],
-                'mail_order_image' : get_seller_date['mail_order_image'],
-                'bg_image' : get_seller_date['bg_image'],
-                'single_line_intro' : get_seller_date['single_line_intro'],
-                'detailed_intro' : get_seller_date['detailed_intro'],
-                'shopping_info' : get_seller_date['shopping_info'],
-                'refund_info' : get_seller_date['refund_info'],
+                'accounts_id'           : get_seller_date['accounts_id'],
+                'accounts'              : get_seller_date['account'],
+                'seller_types_id'       : get_seller_date['seller_types_id'],
+                'name_kr'               : get_seller_date['name_kr'],
+                'name_en'               : get_seller_date['name_en'],
+                'cs_phone_number'       : get_seller_date['cs_phone_number'],
+                'site_url'              : get_seller_date['site_url'],
+                'instagram_account'     : get_seller_date['instagram_account'],
+                'cs_kakao_account'      : get_seller_date['cs_kakao_account'],
+                'cs_yellow_account'     : get_seller_date['cs_yellow_account'],
+                'profile_image'         : get_seller_date['profile_image'],
+                'ceo_name'              : get_seller_date['ceo_name'],
+                'company_name'          : get_seller_date['company_name'],
+                'company_code'          : get_seller_date['company_code'],
+                'company_certi_image'   : get_seller_date['company_certi_image'],
+                'mail_order_code'       : get_seller_date['mail_order_code'],
+                'mail_order_image'      : get_seller_date['mail_order_image'],
+                'bg_image'              : get_seller_date['bg_image'],
+                'single_line_intro'     : get_seller_date['single_line_intro'],
+                'detailed_intro'        : get_seller_date['detailed_intro'],
+                'shopping_info'         : get_seller_date['shopping_info'],
+                'refund_info'           : get_seller_date['refund_info'],
                 'seller_representative' : []
             }
 
@@ -808,12 +817,12 @@ class SellerDao:
 
             for i in range(len(seller_representative_data)):
                 seller_representative = {
-                    'id' : seller_representative_data[i]['id'],
-                    'sellers_id' : seller_representative_data[i]['sellers_id'],
-                    'name' : seller_representative_data[i]['name'],
+                    'id'            : seller_representative_data[i]['id'],
+                    'sellers_id'    : seller_representative_data[i]['sellers_id'],
+                    'name'          : seller_representative_data[i]['name'],
                     'mobile_number' : seller_representative_data[i]['mobile_number'],
-                    'email' : seller_representative_data[i]['email'],
-                    'is_used' : seller_representative_data[i]['is_used']
+                    'email'         : seller_representative_data[i]['email'],
+                    'is_used'       : seller_representative_data[i]['is_used']
                 }
                 seller_info['seller_representative'].append(seller_representative)
 
@@ -821,19 +830,20 @@ class SellerDao:
 
             db_cursor.close()
 
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
     """
     셀러list - 셀러정보 UPDATE 메소드
     """
     def update_seller_info_detail(self, seller_data, seller_info_data):
-        db_cursor = self.db_connection.cursor()
-
         try:
+            db_cursor = self.db_connection.cursor()
             # 트랜잭션 시작
             query_start = ("START TRANSACTION")
             db_cursor.execute(query_start)
@@ -848,12 +858,7 @@ class SellerDao:
                 sellers
                 SET
                 name_kr = %(name_kr)s,
-                name_en = %(name_en)s,
-                cs_phone_number = %(cs_phone_number)s,
-                site_url = %(site_url)s,
-                instagram_account = %(instagram_account)s,
-                cs_kakao_account = %(cs_kakao_account)s,
-                cs_yellow_account = %(cs_yellow_account)s
+                name_en = %(name_en)s
                 WHERE id = %(sellers_id)s
             """)
             db_cursor.execute(update_sellers, seller_data)
@@ -863,18 +868,23 @@ class SellerDao:
                 UPDATE
                 sellers_info
                 SET
-                profile_image = %(profile_image)s,
-                ceo_name = %(ceo_name)s,
-                company_name = %(company_name)s,
-                company_code = %(company_code)s,
+                profile_image       = %(profile_image)s,
+                ceo_name            = %(ceo_name)s,
+                company_name        = %(company_name)s,
+                company_code        = %(company_code)s,
                 company_certi_image = %(company_certi_image)s,
-                mail_order_code = %(mail_order_code)s,
-                mail_order_image = %(mail_order_image)s,
-                bg_image = %(bg_image)s,
-                single_line_intro = %(single_line_intro)s,
-                detailed_intro = %(detailed_intro)s,
-                shopping_info = %(shopping_info)s,
-                refund_info = %(refund_info)s
+                mail_order_code     = %(mail_order_code)s,
+                mail_order_image    = %(mail_order_image)s,
+                bg_image            = %(bg_image)s,
+                single_line_intro   = %(single_line_intro)s,
+                detailed_intro      = %(detailed_intro)s,
+                shopping_info       = %(shopping_info)s,
+                refund_info         = %(refund_info)s,
+                cs_phone_number     = %(cs_phone_number)s,
+                site_url            = %(site_url)s,
+                instagram_account   = %(instagram_account)s,
+                cs_kakao_account    = %(cs_kakao_account)s,
+                cs_yellow_account   = %(cs_yellow_account)s
                 WHERE id = (SELECT seller_info_id FROM sellers WHERE id = %(sellers_id)s)
             """)
             db_cursor.execute(update_sellers_info, seller_info_data)
@@ -882,10 +892,12 @@ class SellerDao:
             self.db_connection.commit()            
             db_cursor.close()
         
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             query_rollback = ("ROLLBACK")
             db_cursor.execute(query_rollback)
             db_cursor.close()
@@ -895,8 +907,8 @@ class SellerDao:
     셀러list - 셀러담당자 UPDATE 메소드
     """
     def update_seller_representative_detail(self, seller_representative_data):
-        db_cursor = self.db_connection.cursor()
         try:
+            db_cursor = self.db_connection.cursor()
             # 셀러 담당자 테이블 SELECT
             search_seller_representative = ("""
                 SELECT
@@ -929,13 +941,17 @@ class SellerDao:
             self.db_connection.commit() 
             db_cursor.close()
         
-        except KeyError:
+        except KeyError as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_KEY")
 
         except mysql.connector.Error as err:
+            traceback.print_exc()
             abort(400, description="INVAILD_DATA")
 
-
+    """
+    시연 초기 mocked 데이터 수정
+    """
     def select_user(self):
         db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
         user_data = []
