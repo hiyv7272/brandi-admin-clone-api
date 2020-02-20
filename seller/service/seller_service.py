@@ -185,6 +185,7 @@ class SellerService():
     """
     def update_seller_info(self, seller_request_data, user_info):
         try:
+            print("start")
             seller_data = {
                 'accounts_id'       : user_info['accounts_id'],
                 'name_kr'           : seller_request_data['seller_info']['name_kr'],
@@ -211,21 +212,22 @@ class SellerService():
                 'shopping_info'         : seller_request_data['seller_info']['shopping_info'],
                 'refund_info'           : seller_request_data['seller_info']['refund_info']
             }
-
+            print("here1")
             seller_representative_data = seller_request_data['seller_info']['seller_representative']
-
+            print("here2")
             for i in range(len(seller_representative_data)):
                 seller_representative_data[i]['accounts_id'] = user_info['accounts_id']
-
+            print("here3")
             validation          = self.validate(seller_data)
             validation          = self.validate(seller_info_data)
-                
+            print("here4")    
             update_seller_info              = self.seller_dao.update_seller_info(seller_data, seller_info_data)
             update_seller_representative    = self.seller_dao.update_seller_representative(seller_representative_data)
- 
+            print("end")
             return update_seller_info
         
-        except KeyError:
+        except KeyError as err:
+            print("KeyError print=",end=""), print(err)
             abort (400, description="INVALID_KEY")
 
 
@@ -351,6 +353,28 @@ class SellerService():
             update_seller_representative    = self.seller_dao.update_seller_representative_detail(seller_representative_data)
  
             return update_seller_info
+        
+        except KeyError:
+            abort (400, description="INVALID_KEY")
+
+
+    """
+    account-bcyrpt
+    """
+    def account_password_bcyprt(self):
+        try:
+            user_data = self.seller_dao.select_user() 
+
+            for row in user_data:
+
+                row['password']  = bcrypt.hashpw(  
+                    row['password'].encode('UTF-8'),
+                    bcrypt.gensalt()
+                )
+                
+            update_user = self.seller_dao.update_user(user_data)
+
+            return user_data
         
         except KeyError:
             abort (400, description="INVALID_KEY")
