@@ -948,3 +948,66 @@ class ProductDao:
         finally:
             # print("finally cursor close")
             db_cursor.close()
+
+    # 1차 카테고리 반환
+    def first_category_dao(self):
+        try:
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+            first_category_query = ("""
+                SELECT 
+                    id,
+                    name
+                FROM first_categories 
+            """)
+            ## 쿼리 실행
+            db_cursor.execute(first_category_query)
+            first_categories = db_cursor.fetchall()
+            return first_categories
+
+        except KeyError as e:
+            print("except KeyError")
+            print(str(e))
+            abort(400, description="INVAILD_KEY")
+        
+        except mysql.connector.Error as error:
+            # 에러시 롤백
+            print("Failed to get data from database : {}".format(error))
+
+        finally:
+            # print("finally cursor close")
+            db_cursor.close()
+
+    # 2차 카테고리 반환
+    def second_category_dao(self, request):
+        try:
+            first_id = int(request.args.get('first_id', 10))
+            print("first_id=",end=""),print(first_id)
+            second_data = {
+                'first_categories_id' : first_id
+            }
+            db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
+            second_category_query = ("""
+                SELECT 
+                    second_categories.id,
+                    second_categories.name
+                FROM (total_categories INNER JOIN second_categories
+                ON total_categories.second_categories_id = second_categories.id)
+                WHERE total_categories.first_categories_id=%(first_categories_id)s
+            """)
+            ## 쿼리 실행
+            db_cursor.execute(second_category_query, second_data)
+            second_categories = db_cursor.fetchall()
+            return second_categories
+
+        except KeyError as e:
+            print("except KeyError")
+            print(str(e))
+            abort(400, description="INVAILD_KEY")
+        
+        except mysql.connector.Error as error:
+            # 에러시 롤백
+            print("Failed to get data from database : {}".format(error))
+
+        finally:
+            # print("finally cursor close")
+            db_cursor.close()

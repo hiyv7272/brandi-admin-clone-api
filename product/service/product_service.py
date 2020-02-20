@@ -100,3 +100,11 @@ class ProductService:
 
     def modify_product(self, request):
         self.product_dao.modify_product_dao(request)
+
+    def first_category(self):
+        first_categories = self.product_dao.first_category_dao()
+        return first_categories
+
+    def second_category(self, request):
+        second_categories = self.product_dao.second_category_dao(request)
+        return second_categories
