@@ -5489,6 +5489,16 @@ INSERT INTO products_counts (id, is_used) VALUES (57, TRUE);
 INSERT INTO products_counts (id, is_used) VALUES (58, TRUE);
 INSERT INTO products_counts (id, is_used) VALUES (59, TRUE);
 INSERT INTO products_counts (id, is_used) VALUES (60, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (61, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (62, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (63, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (64, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (65, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (66, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (67, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (68, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (69, TRUE);
+INSERT INTO products_counts (id, is_used) VALUES (70, TRUE);
 
 --
 -- 19. products_counts
