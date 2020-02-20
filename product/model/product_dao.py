@@ -970,7 +970,6 @@ class ProductDao:
             abort(400, description="INVAILD_KEY")
         
         except mysql.connector.Error as error:
-            # 에러시 롤백
             print("Failed to get data from database : {}".format(error))
 
         finally:
@@ -1005,7 +1004,6 @@ class ProductDao:
             abort(400, description="INVAILD_KEY")
         
         except mysql.connector.Error as error:
-            # 에러시 롤백
             print("Failed to get data from database : {}".format(error))
 
         finally:
