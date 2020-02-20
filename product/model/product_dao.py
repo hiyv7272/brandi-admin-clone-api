@@ -547,17 +547,6 @@ class ProductDao:
             products_param['end_date'] = end_date
             where_added = True
             products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
-            # if start_date == end_date:
-                # products_param['start_date'] = start_date
-                # products_param['end_date'] = end_date
-                # where_added = True
-                # products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(start_date)s + 1 DAY) '
-            #     pass
-            # else:
-            #     products_param['start_date'] = start_date
-            #     products_param['end_date'] = end_date
-            #     where_added = True
-            #     products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
         return products_query, where_added
 
     # 페이지네이션 셀러 조건 쿼리 함수, 서브쿼리로 accounts_id를 선택후 상품의 등록자 조건으로 걸어줌
