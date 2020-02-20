@@ -120,3 +120,28 @@ class ProductView:
             print("product_pagination view start")
             products_data = product_service.product_pagination(request)
             return jsonify(products_data)
+
+        """
+        1차 카테고리 API
+        ----------
+        -------
+        return : 선택가능한 1차 카테고리, http 응답코드(200, 400)
+        """
+        @app.route("/first_category", methods=['GET'])
+        def first_categories():
+            # service call
+            first_categories = product_service.first_category()
+            return jsonify(first_categories)
+    
+        """
+        2차 카테고리 API
+        ----------
+        -------
+        return : 선택가능한 2차 카테고리, http 응답코드(200, 400)
+        """
+        @app.route("/second_category", methods=['GET'])
+        def second_categories():
+            # service call
+            second_categories = product_service.second_category(request)
+            return jsonify(second_categories)
+    
