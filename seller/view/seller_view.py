@@ -178,6 +178,7 @@ class SellerView:
         @login_decorator
         def seller_info_update():
             seller_request_data = request.json
+            print('seller_request_data', seller_request_data)
             seller_info_update  = seller_service.update_seller_info(seller_request_data, g.user_info)
 
             return jsonify({'message':'SUCCESS'}, 200)
@@ -226,8 +227,6 @@ class SellerView:
         @app.route("/seller/list-info-update/<int:user_id>", methods=['POST'])
         def seller_info_detail_update(user_id):
             seller_request_data = request.json
-            print(user_id)
-            print(seller_request_data)
             seller_info_detail = seller_service.seller_info_detail_update(seller_request_data, user_id)
 
             return jsonify({'message':'SUCCESS'}, 200)

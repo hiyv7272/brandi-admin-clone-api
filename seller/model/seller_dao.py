@@ -967,6 +967,7 @@ class SellerDao:
             INSERT INTO
             masters (
                 accounts_id,
+                auth_groups_id,
                 account,
                 password,
                 name_kr,
@@ -974,6 +975,7 @@ class SellerDao:
                 is_used
             ) VALUES (
                 (SELECT id FROM accounts WHERE account = %(account)s),
+                (SELECT id FROM auth_groups WHERE id = 1),
                 %(account)s,
                 %(password)s,
                 '마스터',
