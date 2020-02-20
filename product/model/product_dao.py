@@ -543,8 +543,10 @@ class ProductDao:
         print("start_date=",end=""), print(start_date)
         print("end_date=",end=""), print(end_date)
         if start_date is not None and end_date is not None:
-            products_param['start_date'] = start_date
-            products_param['end_date'] = end_date
+            # products_param['start_date'] = start_date
+            # products_param['end_date'] = end_date
+            products_param['start_date'] = '{} {}'.format(start_date, "00:00:00")
+            products_param['end_date'] = '{} {}'.format(end_date, "23:59:59")
             where_added = True
             products_query += 'WHERE' + ' (created_at BETWEEN %(start_date)s AND %(end_date)s) '
         return products_query, where_added
